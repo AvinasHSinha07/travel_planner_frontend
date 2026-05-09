@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Map, 
   TrendingUp, 
@@ -14,8 +14,6 @@ import {
   Bell
 } from 'lucide-react';
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -30,21 +28,23 @@ import axiosInstance from '@/lib/axiosInstance';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
-const data = [
-  { name: 'Jan', trips: 4 },
-  { name: 'Feb', trips: 7 },
-  { name: 'Mar', trips: 5 },
-  { name: 'Apr', trips: 12 },
-  { name: 'May', trips: 8 },
-  { name: 'Jun', trips: 15 },
-];
+type AnalyticsResponse =
+  | {
+      scope: 'platform';
+      monthlySeries: { month: string; bookings: number; revenue: number; newUsers: number }[];
+    }
+  | {
+      scope: 'user';
+      monthlySeries: { month: string; bookings: number; revenue: number; trips: number }[];
+    };
 
 const DashboardOverview = () => {
   const { data: session } = authClient.useSession();
   const user = session?.user;
   const userRole = (user as any)?.role || 'USER';
+  const staff = userRole === 'ADMIN' || userRole === 'TRAVEL_AGENT';
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       const response = await axiosInstance.get('/user/dashboard-stats');
@@ -53,7 +53,30 @@ const DashboardOverview = () => {
     enabled: !!user,
   });
 
-  if (isLoading) {
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['overview-analytics-dashboard'],
+    queryFn: async () => {
+      const response = await axiosInstance.get('/analytics/dashboard');
+      return response.data.data as AnalyticsResponse;
+    },
+    enabled: !!user,
+  });
+
+  const chartData = useMemo(() => {
+    if (!analytics) return [];
+    if (analytics.scope === 'platform') {
+      return analytics.monthlySeries.map((m) => ({
+        name: m.month,
+        count: m.bookings,
+      }));
+    }
+    return analytics.monthlySeries.map((m) => ({
+      name: m.month,
+      count: m.trips,
+    }));
+  }, [analytics]);
+
+  if (statsLoading || analyticsLoading || !analytics) {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -61,17 +84,25 @@ const DashboardOverview = () => {
     );
   }
 
-  const statConfig = userRole === 'ADMIN' ? [
-    { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, trend: '+5%', up: true },
-    { label: 'Destinations', value: stats?.totalDestinations || 0, icon: Compass, trend: '+2', up: true },
-    { label: 'Total Bookings', value: stats?.totalBookings || 0, icon: Calendar, trend: '+12%', up: true },
-    { label: 'Total Revenue', value: `$${(stats?.totalRevenue || 0).toLocaleString()}`, icon: CreditCard, trend: '+8%', up: true },
-  ] : [
-    { label: 'My Itineraries', value: stats?.totalTrips || 0, icon: Map, trend: 'Active', up: true },
-    { label: 'Total Bookings', value: stats?.totalBookings || 0, icon: Calendar, trend: 'Confirmed', up: true },
-    { label: 'Notifications', value: stats?.totalNotifications || 0, icon: Bell, trend: 'Unread', up: true },
-    { label: 'Total Spent', value: `$${(stats?.totalSpent || 0).toLocaleString()}`, icon: CreditCard, trend: 'USD', up: true },
-  ];
+  const statConfig = staff
+    ? [
+        { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, trend: '+5%', up: true },
+        { label: 'Destinations', value: stats?.totalDestinations || 0, icon: Compass, trend: '+2', up: true },
+        { label: 'Total Bookings', value: stats?.totalBookings || 0, icon: Calendar, trend: '+12%', up: true },
+        {
+          label: 'Total Revenue',
+          value: `$${(stats?.totalRevenue || 0).toLocaleString()}`,
+          icon: CreditCard,
+          trend: '+8%',
+          up: true,
+        },
+      ]
+    : [
+        { label: 'My Itineraries', value: stats?.totalTrips || 0, icon: Map, trend: 'Active', up: true },
+        { label: 'Total Bookings', value: stats?.totalBookings || 0, icon: Calendar, trend: 'Confirmed', up: true },
+        { label: 'Notifications', value: stats?.totalNotifications || 0, icon: Bell, trend: 'Unread', up: true },
+        { label: 'Total Spent', value: `$${(stats?.totalSpent || 0).toLocaleString()}`, icon: CreditCard, trend: 'USD', up: true },
+      ];
 
   return (
     <div className="space-y-10">
@@ -84,7 +115,11 @@ const DashboardOverview = () => {
           Welcome Back, {user?.name?.split(' ')[0] || 'Captain'}
         </h1>
         <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-xs">
-          {userRole === 'ADMIN' ? 'Global Platform Oversight' : 'Your Global Expedition Dashboard'}
+          {userRole === 'ADMIN'
+            ? 'Global platform oversight'
+            : userRole === 'TRAVEL_AGENT'
+              ? 'Travel agent operations'
+              : 'Your global expedition dashboard'}
         </p>
       </motion.div>
 
@@ -120,17 +155,19 @@ const DashboardOverview = () => {
           <div className="flex justify-between items-center mb-10">
             <div>
               <h3 className="text-xl font-black uppercase tracking-widest">
-                {userRole === 'ADMIN' ? 'Platform Velocity' : 'Travel Velocity'}
+                {staff ? 'Platform velocity' : 'Travel velocity'}
               </h3>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
-                {userRole === 'ADMIN' ? 'Global System Activity' : 'Monthly Expedition Frequency'}
+                {staff
+                  ? 'Monthly bookings across the platform'
+                  : 'Your trips starting each month'}
               </p>
             </div>
           </div>
           
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorTrips" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#30638e" stopOpacity={0.3}/>
@@ -153,10 +190,11 @@ const DashboardOverview = () => {
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#001b2b', border: 'none', borderRadius: '1rem', color: '#fff' }}
                   itemStyle={{ color: '#edae49', fontWeight: 900, textTransform: 'uppercase', fontSize: '10px' }}
+                  formatter={(value) => [String(value ?? 0), staff ? 'Bookings' : 'Trips']}
                 />
                 <Area 
                   type="monotone" 
-                  dataKey="trips" 
+                  dataKey="count" 
                   stroke="#30638e" 
                   strokeWidth={4}
                   fillOpacity={1} 

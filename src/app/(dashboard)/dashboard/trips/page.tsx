@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   Map, 
@@ -30,8 +31,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
+import { NewTripDialog } from '@/components/trips/NewTripDialog';
+import { toast } from 'sonner';
 
 interface Trip {
   id: string;
@@ -57,7 +59,11 @@ const statusColors: Record<string, string> = {
 };
 
 const MyTripsPage = () => {
+  const router = useRouter();
   const { data: session } = authClient.useSession();
+  const role = (session?.user as { role?: string })?.role;
+  /** Backend allows only USER + ADMIN to DELETE /trip/:id */
+  const canDeleteTrip = role === 'USER' || role === 'ADMIN';
   const [deleteTripId, setDeleteTripId] = useState<string | null>(null);
 
   const { data: trips, isLoading, refetch } = useQuery({
@@ -74,8 +80,12 @@ const MyTripsPage = () => {
       await axiosInstance.delete(`/trip/${tripId}`);
       setDeleteTripId(null);
       refetch();
+      toast.success('Trip deleted');
     } catch (error) {
-      console.error('Failed to delete trip:', error);
+      const msg =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to delete trip';
+      toast.error(msg);
     }
   };
 
@@ -99,12 +109,7 @@ const MyTripsPage = () => {
             Manage Your Travel Plans
           </p>
         </div>
-        <Link href="/dashboard">
-          <Button className="h-14 px-6 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest">
-            <Plus className="w-5 h-5 mr-2" />
-            New Trip
-          </Button>
-        </Link>
+        <NewTripDialog />
       </div>
 
       {/* Trips Grid */}
@@ -147,25 +152,23 @@ const MyTripsPage = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/trips/${trip.id}`}>
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          View Details
-                        </Link>
+                      <DropdownMenuItem onClick={() => router.push(`/dashboard/trips/${trip.id}`)}>
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/trips/${trip.id}/edit`}>
-                          <Edit3 className="w-4 h-4 mr-2" />
-                          Edit Trip
-                        </Link>
+                      <DropdownMenuItem onClick={() => router.push(`/dashboard/trips/${trip.id}/edit`)}>
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Edit Trip
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-red-500"
-                        onClick={() => setDeleteTripId(trip.id)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
+                      {canDeleteTrip && (
+                        <DropdownMenuItem
+                          className="text-red-500"
+                          onClick={() => setDeleteTripId(trip.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -227,12 +230,12 @@ const MyTripsPage = () => {
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
             Start planning your next adventure by creating a new trip
           </p>
-          <Link href="/dashboard">
+          <NewTripDialog>
             <Button className="h-16 px-8 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest">
               <Plus className="w-5 h-5 mr-2" />
               Plan Your First Trip
             </Button>
-          </Link>
+          </NewTripDialog>
         </div>
       )}
 

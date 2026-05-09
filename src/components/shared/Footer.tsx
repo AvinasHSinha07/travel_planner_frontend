@@ -10,9 +10,9 @@ const Footer = () => {
       title: 'Platform',
       links: [
         { name: 'Destinations', href: '/destinations' },
-        { name: 'AI Planner', href: '/ai-planner' },
-        { name: 'Group Trips', href: '/group-trips' },
-        { name: 'Luxury Stays', href: '/stays' },
+        { name: 'Blog', href: '/blog' },
+        { name: 'Travel Guides', href: '/guides' },
+        { name: 'Contact', href: '/contact' },
       ],
     },
     {

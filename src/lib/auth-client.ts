@@ -1,24 +1,32 @@
-import { createAuthClient } from "better-auth/react"
+import { createAuthClient } from "better-auth/react";
+import { customSessionClient } from "better-auth/client/plugins";
 
 const isClient = typeof window !== "undefined";
-const isProduction = process.env.NODE_ENV === "production";
 
-// In production, we always want to point to the frontend origin (via proxy)
-// In development, we use NEXT_PUBLIC_API_URL or localhost:5000
-const rawURL = isClient
-    ? window.location.origin
-    : (process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://127.0.0.1:5000");
-
-// Ensure baseURL doesn't include the api path twice
-const baseURL = rawURL?.replace(/\/api\/v1\/?$/, "") || "http://localhost:5000";
-
-// On server-side (Next.js Server Components), localhost can sometimes fail to resolve or point to IPv6 (::1)
-// while the backend is on IPv4. We override to 127.0.0.1 only for server-side internal calls.
-const finalBaseURL = isClient ? baseURL : (baseURL.includes("localhost") ? baseURL.replace("localhost", "127.0.0.1") : baseURL);
+/**
+ * Auth must use the same browser origin as the Next app so session cookies are set
+ * for localhost:3000 (or your deployed host). API calls use /api/v1 via rewrites.
+ * Using the raw API port (5000) directly breaks session cookies for proxied axios calls.
+ */
+function resolveAuthBaseURL(): string {
+  if (isClient) {
+    return window.location.origin;
+  }
+  const fromEnv =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_CLIENT_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
+  const trimmed = fromEnv.replace(/\/$/, "");
+  if (trimmed) {
+    return trimmed;
+  }
+  return "http://127.0.0.1:3000";
+}
 
 export const authClient = createAuthClient({
-    baseURL: finalBaseURL,
-    basePath: "/api/v1/auth",
-})
+  baseURL: resolveAuthBaseURL(),
+  basePath: "/api/v1/auth",
+  plugins: [customSessionClient()],
+});
 
 export const { useSession, signIn, signOut, signUp } = authClient;

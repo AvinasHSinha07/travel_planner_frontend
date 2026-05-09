@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
   CreditCard, 
@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth-client';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -66,10 +67,22 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
 };
 
 const AdminBookingsPage = () => {
+  const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
+
+  const patchStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      await axiosInstance.patch(`/booking/${id}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      toast.success('Booking status updated');
+    },
+    onError: () => toast.error('Could not update status'),
+  });
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-bookings', statusFilter, typeFilter],
@@ -80,7 +93,9 @@ const AdminBookingsPage = () => {
           type: typeFilter !== 'ALL' ? typeFilter : undefined,
         },
       });
-      return response.data.data as Booking[];
+      const payload = response.data.data;
+      if (Array.isArray(payload)) return payload as Booking[];
+      return (payload?.items ?? []) as Booking[];
     },
     enabled: (session?.user as any)?.role === 'ADMIN' || (session?.user as any)?.role === 'TRAVEL_AGENT',
   });
@@ -185,6 +200,9 @@ const AdminBookingsPage = () => {
                 <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
                   Date
                 </th>
+                <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
@@ -243,6 +261,26 @@ const AdminBookingsPage = () => {
                       <Calendar className="w-3 h-3" />
                       <span>{new Date(booking.createdAt).toLocaleDateString()}</span>
                     </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <Select
+                      value={booking.status}
+                      onValueChange={(v) => {
+                        if (v && v !== booking.status) {
+                          patchStatus.mutate({ id: booking.id, status: v });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-[160px] h-10 rounded-xl text-xs font-bold">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="PENDING">PENDING</SelectItem>
+                        <SelectItem value="CONFIRMED">CONFIRMED</SelectItem>
+                        <SelectItem value="CANCELLED">CANCELLED</SelectItem>
+                        <SelectItem value="REFUNDED">REFUNDED</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </td>
                 </motion.tr>
               ))}

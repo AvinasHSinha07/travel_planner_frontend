@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import QueryProvider from "@/providers/QueryProvider";
 import LenisProvider from "@/providers/LenisProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { TravelChatbot } from "@/components/chat/TravelChatbot";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
           >
             <LenisProvider>
               {children}
+              <TravelChatbot />
               <Toaster position="top-center" expand={true} richColors />
             </LenisProvider>
           </ThemeProvider>

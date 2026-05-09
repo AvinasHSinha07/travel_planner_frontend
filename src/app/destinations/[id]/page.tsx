@@ -1,36 +1,129 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import axiosInstance from '@/lib/axiosInstance';
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
-import { 
-  MapPin, 
-  Calendar, 
-  DollarSign, 
-  Star, 
-  CheckCircle2, 
-  ArrowRight, 
-  Loader2, 
+import {
+  MapPin,
+  Calendar,
+  DollarSign,
+  Star,
+  CheckCircle2,
+  ArrowRight,
+  Loader2,
   Sparkles,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CreditCard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SaveDestinationHeart } from '@/components/destinations/SaveDestinationHeart';
+import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+type ReviewRow = {
+  id: string;
+  rating: number;
+  comment: string;
+  images: string[];
+  createdAt: string;
+  user: { name: string; avatar?: string | null };
+};
 
 const DestinationDetailsPage = () => {
   const { id } = useParams();
+  const destId = String(id ?? '');
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewImageUrls, setReviewImageUrls] = useState<string[]>([]);
+
+  const queryClient = useQueryClient();
+  const { data: session } = authClient.useSession();
 
   const { data: destination, isLoading } = useQuery({
     queryKey: ['destination', id],
     queryFn: async () => {
       const response = await axiosInstance.get(`/destination/${id}`);
       return response.data.data;
+    },
+  });
+
+  const { data: reviewPayload, refetch: refetchReviews } = useQuery({
+    queryKey: ['reviews', destId, reviewPage],
+    queryFn: async () => {
+      const res = await axiosInstance.get(`/review/${destId}`, {
+        params: { page: reviewPage, limit: 8 },
+      });
+      return res.data.data as {
+        items: ReviewRow[];
+        meta: { total: number; page: number; limit: number; totalPages: number };
+      };
+    },
+    enabled: !!destId,
+  });
+
+  const bookMutation = useMutation({
+    mutationFn: async () => {
+      if (!destination) throw new Error('Missing destination');
+      const res = await axiosInstance.post('/booking', {
+        destinationId: destId,
+        type: 'PACKAGE',
+        totalAmount: Math.max((destination.avgCostPerDay || 0) * 7, 99),
+      });
+      return res.data.data as { checkoutUrl?: string; url?: string };
+    },
+    onSuccess: (data) => {
+      const target = data.checkoutUrl || data.url;
+      if (target) window.location.href = target;
+      else toast.error('No checkout URL returned');
+    },
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Checkout could not start';
+      toast.error(msg);
+    },
+  });
+
+  const submitReview = useMutation({
+    mutationFn: async () => {
+      await axiosInstance.post('/review', {
+        destinationId: destId,
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+        images: reviewImageUrls.length ? reviewImageUrls : undefined,
+      });
+    },
+    onSuccess: () => {
+      toast.success('Review saved');
+      setReviewComment('');
+      setReviewImageUrls([]);
+      refetchReviews();
+      queryClient.invalidateQueries({ queryKey: ['reviews', destId] });
+    },
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Could not submit review';
+      toast.error(msg);
     },
   });
 
@@ -78,6 +171,9 @@ const DestinationDetailsPage = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
               <div className="absolute bottom-10 left-10">
                 <span className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em]">Main Feature</span>
+              </div>
+              <div className="absolute top-8 right-8 z-10">
+                <SaveDestinationHeart destinationId={destination.id} />
               </div>
             </motion.div>
 
@@ -209,10 +305,38 @@ const DestinationDetailsPage = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full h-20 rounded-2xl bg-[#edae49] hover:bg-[#edae49]/90 text-[#003d5b] text-xl font-black shadow-xl shadow-[#edae49]/20 transition-all hover:scale-[1.02] active:scale-95">
-                    START PLANNING
-                    <ArrowRight className="ml-3 w-6 h-6" />
-                  </Button>
+                  <div className="space-y-3 relative z-10">
+                    <Button
+                      type="button"
+                      className="w-full h-16 rounded-2xl bg-[#edae49] hover:bg-[#edae49]/90 text-[#003d5b] text-lg font-black shadow-xl shadow-[#edae49]/20"
+                      onClick={() => bookMutation.mutate()}
+                      disabled={bookMutation.isPending || !session?.user}
+                    >
+                      {bookMutation.isPending ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <>
+                          <CreditCard className="mr-2 w-5 h-5" />
+                          Book package (Stripe)
+                        </>
+                      )}
+                    </Button>
+                    <Link href="/dashboard/trips" className="block">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-14 rounded-2xl border-white/30 text-white bg-white/5 hover:bg-white/10"
+                      >
+                        Plan full trip
+                        <ArrowRight className="ml-2 w-5 h-5" />
+                      </Button>
+                    </Link>
+                    {!session?.user && (
+                      <p className="text-center text-[10px] text-white/50 font-bold">
+                        Log in to complete checkout
+                      </p>
+                    )}
+                  </div>
 
                   <p className="text-center text-[10px] text-white/30 font-black uppercase tracking-[0.3em] mt-8">
                     Strictly Limited Availability
@@ -236,6 +360,158 @@ const DestinationDetailsPage = () => {
             </div>
 
           </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-secondary/10 border-t border-border/40">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <h2 className="text-3xl font-black uppercase tracking-tight mb-2">Traveler reviews</h2>
+          <p className="text-muted-foreground text-sm font-medium mb-10">
+            {reviewPayload?.meta.total ?? 0} reviews · Page {reviewPayload?.meta.page ?? 1} of{' '}
+            {reviewPayload?.meta.totalPages ?? 1}
+          </p>
+
+          {session?.user ? (
+            <div className="rounded-[2rem] border border-border/60 bg-card p-8 mb-12 space-y-4">
+              <h3 className="font-black uppercase text-sm tracking-widest">Write a review</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Rating</Label>
+                  <Select
+                    value={String(reviewRating)}
+                    onValueChange={(v) => setReviewRating(Number(v) || 5)}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {[5, 4, 3, 2, 1].map((r) => (
+                        <SelectItem key={r} value={String(r)}>
+                          {r} stars
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Comment</Label>
+                  <Textarea
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    className="min-h-[100px] rounded-xl"
+                    placeholder="Share what stood out about this destination..."
+                  />
+                </div>
+                <div className="space-y-3 md:col-span-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Review photos (optional)
+                  </Label>
+                  <ImageUploadButton
+                    folder="reviews"
+                    label="Upload photo"
+                    className="rounded-xl"
+                    onUploaded={(url) => setReviewImageUrls((prev) => [...prev, url])}
+                  />
+                  {reviewImageUrls.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {reviewImageUrls.map((url) => (
+                        <div
+                          key={url}
+                          className="relative group w-16 h-16 rounded-lg overflow-hidden border border-border/60"
+                        >
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                            onClick={() =>
+                              setReviewImageUrls((prev) => prev.filter((u) => u !== url))
+                            }
+                            aria-label="Remove photo"
+                          >
+                            <X className="w-4 h-4 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button
+                className="rounded-xl font-black uppercase text-xs h-12"
+                disabled={!reviewComment.trim() || submitReview.isPending}
+                onClick={() => submitReview.mutate()}
+              >
+                {submitReview.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit review'}
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-[2rem] border border-dashed border-border p-8 mb-12 text-center text-muted-foreground">
+              <Link href="/login">
+                <Button className="rounded-xl font-black uppercase text-xs">Log in to review</Button>
+              </Link>
+            </div>
+          )}
+
+          <div className="space-y-6">
+            {(reviewPayload?.items ?? []).map((r) => (
+              <div
+                key={r.id}
+                className="rounded-[2rem] border border-border/50 bg-background p-6 shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-4 mb-3">
+                  <p className="font-black">{r.user.name}</p>
+                  <div className="flex items-center gap-1 text-accent">
+                    {Array.from({ length: r.rating }).map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{r.comment}</p>
+                {r.images?.length ? (
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {r.images.map((src) => (
+                      <a
+                        key={src}
+                        href={src}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block w-20 h-20 rounded-xl overflow-hidden border border-border/50"
+                      >
+                        <img src={src} alt="" className="w-full h-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-4">
+                  {new Date(r.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+            {!reviewPayload?.items?.length && (
+              <p className="text-muted-foreground text-center py-8">No reviews yet — be the first.</p>
+            )}
+          </div>
+
+          {reviewPayload && reviewPayload.meta.totalPages > 1 && (
+            <div className="flex justify-center gap-3 mt-10">
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                disabled={reviewPage <= 1}
+                onClick={() => setReviewPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                disabled={reviewPage >= reviewPayload.meta.totalPages}
+                onClick={() => setReviewPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,12 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { motion } from 'framer-motion';
 import { authClient } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
+
+function getUserRole(session: unknown): string {
+  const u = (session as { user?: { role?: string } } | null | undefined)?.user;
+  return u?.role ?? 'USER';
+}
 
 export default function DashboardLayout({
   children,
@@ -14,6 +19,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
   const [mounted, setMounted] = useState(false);
 
@@ -23,28 +29,26 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!isPending && !session && mounted) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [session, isPending, mounted, router]);
 
-  // Handle Role-Based Access Control (RBAC)
+  // Role-Based Access Control (RBAC) — mirrors backend requireAuth rules for admin routes
   useEffect(() => {
-    if (session?.user && mounted) {
-      const userRole = (session.user as any)?.role || 'USER';
-      const pathname = window.location.pathname;
+    if (!session?.user || !mounted || !pathname) return;
 
-      // Restrict access to /dashboard/admin routes
-      if (pathname.startsWith('/dashboard/admin')) {
-        if (userRole === 'USER') {
-          console.warn('[RBAC] Unauthorized access: USER attempting to access ADMIN route');
-          router.push('/dashboard');
-        } else if (userRole === 'TRAVEL_AGENT' && pathname === '/dashboard/admin/users') {
-          console.warn('[RBAC] Unauthorized access: TRAVEL_AGENT attempting to access USERS management');
-          router.push('/dashboard/admin');
-        }
+    const userRole = getUserRole(session);
+
+    if (pathname.startsWith('/dashboard/admin')) {
+      if (userRole === 'USER') {
+        router.replace('/dashboard');
+        return;
+      }
+      if (userRole === 'TRAVEL_AGENT' && pathname.startsWith('/dashboard/admin/users')) {
+        router.replace('/dashboard/admin');
       }
     }
-  }, [session, mounted, router]);
+  }, [session, mounted, pathname, router]);
 
   if (!mounted || isPending) {
     return (

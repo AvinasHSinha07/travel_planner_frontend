@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { MapPin, Star, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SaveDestinationHeart } from '@/components/destinations/SaveDestinationHeart';
 
 interface DestinationCardProps {
   id: string;
@@ -41,6 +42,10 @@ const DestinationCard = ({ id, name, country, image, category, avgCost, summary 
             <Sparkles className="w-3 h-3 text-accent" />
             <span>{category}</span>
           </div>
+        </div>
+
+        <div className="absolute top-6 right-6 z-10">
+          <SaveDestinationHeart destinationId={id} />
         </div>
 
         {/* Floating Price Tag */}

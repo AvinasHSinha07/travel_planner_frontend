@@ -17,7 +17,11 @@ import {
   ChevronRight,
   Bell,
   Heart,
-  Briefcase
+  Briefcase,
+  MessageSquare,
+  Mountain,
+  Hotel,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -39,7 +43,11 @@ const sidebarLinks = [
   { href: '/dashboard/admin', label: 'Admin Dashboard', icon: Sparkles, roles: ['ADMIN', 'TRAVEL_AGENT'] },
   { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['ADMIN'] },
   { href: '/dashboard/admin/destinations', label: 'Destinations', icon: Globe, roles: ['ADMIN', 'TRAVEL_AGENT'] },
+  { href: '/dashboard/admin/activities', label: 'Activities', icon: Mountain, roles: ['ADMIN', 'TRAVEL_AGENT'] },
+  { href: '/dashboard/admin/accommodations', label: 'Accommodations', icon: Hotel, roles: ['ADMIN', 'TRAVEL_AGENT'] },
   { href: '/dashboard/admin/bookings', label: 'All Bookings', icon: Calendar, roles: ['ADMIN', 'TRAVEL_AGENT'] },
+  { href: '/dashboard/admin/reviews', label: 'Reviews', icon: MessageSquare, roles: ['ADMIN', 'TRAVEL_AGENT'] },
+  { href: '/dashboard/admin/analytics', label: 'Analytics', icon: BarChart3, roles: ['ADMIN', 'TRAVEL_AGENT'] },
 ];
 
 const Sidebar = () => {

@@ -81,7 +81,7 @@ const SettingsPage = () => {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof profile) => {
-      const response = await axiosInstance.patch('/user/profile', data);
+      const response = await axiosInstance.patch('/user/me', data);
       return response.data;
     },
     onSuccess: () => {
@@ -96,7 +96,7 @@ const SettingsPage = () => {
   // Update preferences mutation
   const updatePreferencesMutation = useMutation({
     mutationFn: async (data: TravelPreference) => {
-      const response = await axiosInstance.post('/preference', data);
+      const response = await axiosInstance.patch('/preference', data);
       return response.data;
     },
     onSuccess: () => {
@@ -274,7 +274,9 @@ const SettingsPage = () => {
                   <Label className="text-xs font-black uppercase tracking-widest">Budget Range</Label>
                   <Select
                     value={preferences.budgetRange}
-                    onValueChange={(val) => setPreferences(prev => ({ ...prev, budgetRange: val }))}
+                    onValueChange={(val) =>
+                      setPreferences((prev) => ({ ...prev, budgetRange: val ?? prev.budgetRange }))
+                    }
                   >
                     <SelectTrigger className="h-14 rounded-xl border-border/60">
                       <SelectValue />
@@ -292,7 +294,12 @@ const SettingsPage = () => {
                   <Label className="text-xs font-black uppercase tracking-widest">Preferred Climate</Label>
                   <Select
                     value={preferences.preferredClimate}
-                    onValueChange={(val) => setPreferences(prev => ({ ...prev, preferredClimate: val }))}
+                    onValueChange={(val) =>
+                      setPreferences((prev) => ({
+                        ...prev,
+                        preferredClimate: val ?? prev.preferredClimate,
+                      }))
+                    }
                   >
                     <SelectTrigger className="h-14 rounded-xl border-border/60">
                       <SelectValue />

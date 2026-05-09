@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
 
+const demoEmail = process.env.NEXT_PUBLIC_DEMO_LOGIN_EMAIL;
+const demoPassword = process.env.NEXT_PUBLIC_DEMO_LOGIN_PASSWORD;
+
 const LoginPage = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -21,18 +24,24 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await authClient.signIn.email({
+      console.log('[LOGIN] Attempting login...');
+      const result = await authClient.signIn.email({
         email,
         password,
       });
 
-      if (error) {
-        toast.error(error.message || 'Authentication failed');
+      console.log('[LOGIN] Sign in result:', result);
+      
+      if (result.error) {
+        toast.error(result.error.message || 'Authentication failed');
       } else {
         toast.success('Welcome back to your journey!');
+        // Check cookies after login
+        console.log('[LOGIN] Cookies after login:', document.cookie);
         router.push('/dashboard');
       }
     } catch (err: any) {
+      console.error('[LOGIN] Error:', err);
       toast.error('An unexpected error occurred.');
     } finally {
       setIsLoading(false);
@@ -48,6 +57,40 @@ const LoginPage = () => {
     } catch (error: any) {
       toast.error('Google login failed');
     }
+  };
+
+  const handleDemoLogin = async () => {
+    if (!demoEmail || !demoPassword) {
+      toast.error('Demo login is not configured.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const result = await authClient.signIn.email({
+        email: demoEmail,
+        password: demoPassword,
+      });
+      if (result.error) {
+        toast.error(result.error.message || 'Demo login failed');
+      } else {
+        toast.success('Signed in with demo account');
+        router.push('/dashboard');
+      }
+    } catch {
+      toast.error('Demo login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoFill = () => {
+    if (!demoEmail || !demoPassword) {
+      toast.error('Set NEXT_PUBLIC_DEMO_LOGIN_EMAIL and NEXT_PUBLIC_DEMO_LOGIN_PASSWORD in .env.local');
+      return;
+    }
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    toast.info('Credentials filled — press Sign In or use instant demo below.');
   };
 
   return (
@@ -118,6 +161,29 @@ const LoginPage = () => {
               {isLoading ? 'ESTABLISHING CONNECTION...' : 'SIGN IN'}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
+
+            {demoEmail && demoPassword ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isLoading}
+                  onClick={handleDemoFill}
+                  className="h-12 rounded-2xl text-xs font-black uppercase tracking-widest border-border/60"
+                >
+                  Fill demo credentials
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={isLoading}
+                  onClick={handleDemoLogin}
+                  className="h-12 rounded-2xl text-xs font-black uppercase tracking-widest"
+                >
+                  Demo login (one tap)
+                </Button>
+              </div>
+            ) : null}
           </form>
 
           <div className="mt-10 relative">

@@ -9,6 +9,13 @@ import { authClient } from '@/lib/auth-client';
 import axiosInstance from '@/lib/axiosInstance';
 import { Button } from '@/components/ui/button';
 
+type TravelPrefs = {
+  interests: string[];
+  budgetRange: string | null;
+  travelStyle: string;
+  preferredClimate: string | null;
+} | null;
+
 interface Recommendation {
   destinationId: string;
   name: string;
@@ -23,15 +30,34 @@ const AIRecommendationPanel = () => {
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
 
+  const { data: prefs } = useQuery({
+    queryKey: ['travel-preferences', userId],
+    queryFn: async () => {
+      const res = await axiosInstance.get('/preference');
+      return res.data.data as TravelPrefs;
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+
+  const prefFingerprint = prefs
+    ? JSON.stringify({
+        i: prefs.interests?.slice().sort(),
+        b: prefs.budgetRange,
+        t: prefs.travelStyle,
+        c: prefs.preferredClimate,
+      })
+    : 'none';
+
   const { data: recommendations, isLoading } = useQuery({
-    queryKey: ['ai-recommendations', userId],
+    queryKey: ['ai-recommendations', userId, prefFingerprint],
     queryFn: async () => {
       if (!userId) return null;
       const response = await axiosInstance.post('/ai/recommendations');
       return response.data.data as Recommendation[];
     },
     enabled: !!userId,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   if (!userId) {
@@ -76,9 +102,16 @@ const AIRecommendationPanel = () => {
           <Sparkles className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-black uppercase tracking-widest">AI Recommendations</h3>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Set your travel preferences in your profile to get AI-powered destination recommendations.
+        <p className="text-muted-foreground text-sm mb-4">
+          {prefs && (prefs.interests?.length || prefs.budgetRange)
+            ? 'No matching destinations yet — try browsing all places or loosen filters in your preferences.'
+            : 'Set your travel preferences to get personalized picks aligned with your style and budget.'}
         </p>
+        <Link href="/dashboard/settings">
+          <Button variant="outline" className="rounded-xl font-black uppercase text-xs w-full sm:w-auto">
+            Preferences
+          </Button>
+        </Link>
       </div>
     );
   }
@@ -115,7 +148,9 @@ const AIRecommendationPanel = () => {
                   </div>
                   <div className="flex items-center space-x-1 bg-primary/10 px-2 py-1 rounded-full">
                     <TrendingUp className="w-3 h-3 text-primary" />
-                    <span className="text-xs font-black text-primary">{rec.matchScore}%</span>
+                    <span className="text-xs font-black text-primary">
+                      {Math.min(100, Math.max(0, Math.round(rec.matchScore)))}%
+                    </span>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-2 mb-2">

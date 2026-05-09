@@ -24,10 +24,19 @@ import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+  role?: string;
+  avatar?: string | null;
+};
+
 const DashboardHeader = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
-  const user = session?.user;
+  const user = session?.user as SessionUser | undefined;
 
   const handleLogout = async () => {
     try {
@@ -89,11 +98,11 @@ const DashboardHeader = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64 p-3 rounded-2xl shadow-2xl border-border/50 bg-background/80 backdrop-blur-xl">
             <DropdownMenuLabel className="font-black uppercase tracking-widest text-[10px] text-muted-foreground px-2 py-3">Management</DropdownMenuLabel>
-            <DropdownMenuItem className="rounded-xl py-3 cursor-pointer" onClick={() => router.push('/dashboard/profile')}>
+            <DropdownMenuItem className="rounded-xl py-3 cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
               <User className="w-4 h-4 mr-3" />
               <span className="font-bold">My Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl py-3 cursor-pointer">
+            <DropdownMenuItem className="rounded-xl py-3 cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
               <Settings className="w-4 h-4 mr-3" />
               <span className="font-bold">Preferences</span>
             </DropdownMenuItem>
