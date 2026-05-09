@@ -12,6 +12,7 @@ import Newsletter from '@/components/home/Newsletter';
 import { Sparkles, Shield, Zap, Globe, Compass, Heart, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function Home() {
   const features = [
@@ -138,10 +139,12 @@ export default function Home() {
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Button className="w-full sm:w-auto h-20 px-16 rounded-2xl bg-[#edae49] hover:bg-[#edae49]/90 text-[#003d5b] text-xl font-black shadow-2xl shadow-[#edae49]/20 hover:scale-105 transition-all">
-                  Create My First Plan
-                  <ArrowRight className="ml-3 w-6 h-6" />
-                </Button>
+                <Link href="/register" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto h-20 px-16 rounded-2xl bg-[#edae49] hover:bg-[#edae49]/90 text-[#003d5b] text-xl font-black shadow-2xl shadow-[#edae49]/20 hover:scale-105 transition-all">
+                    Create My First Plan
+                    <ArrowRight className="ml-3 w-6 h-6" />
+                  </Button>
+                </Link>
                 <button className="text-white font-black uppercase tracking-widest text-xs hover:text-[#edae49] transition-colors px-8 py-4">
                   View Success Stories
                 </button>
