@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Planora | AI-Powered Travel Planner",
-  description: "Plan your next luxury trip in minutes with Google Gemini AI.",
+  title: "TRIPLANNERAI | Ready For Your Next Adventure?",
+  description: "Get the best travel deals first with our state-of-the-art AI Travel Planner.",
 };
 
 export default function RootLayout({
