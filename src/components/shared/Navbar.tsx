@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
+import { ModeToggle } from './ModeToggle';
+
 const publicNavLinks = [
   { name: 'Home', href: '/' },
   { name: 'Destinations', href: '/destinations' },
@@ -41,7 +43,6 @@ const Navbar = () => {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { setTheme } = useTheme();
   const { data: session, isPending } = authClient.useSession();
   const isLoggedIn = !!session?.user;
 
@@ -97,6 +98,8 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-3 shrink-0">
+          <ModeToggle />
+          
           <button
             type="button"
             className="p-2 text-muted-foreground hover:text-accent transition-colors"
@@ -166,30 +169,6 @@ const Navbar = () => {
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => setTheme('light')}
-                    >
-                      <Sun className="w-4 h-4 mr-2" />
-                      Light
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => setTheme('dark')}
-                    >
-                      <Moon className="w-4 h-4 mr-2" />
-                      Dark
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => setTheme('system')}
-                    >
-                      <Monitor className="w-4 h-4 mr-2" />
-                      System
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
                     <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleLogout}>
                       <LogOut className="w-4 h-4 mr-2" />
                       Log out
@@ -215,6 +194,7 @@ const Navbar = () => {
         </div>
 
         <div className="md:hidden flex items-center space-x-2">
+          <ModeToggle />
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
