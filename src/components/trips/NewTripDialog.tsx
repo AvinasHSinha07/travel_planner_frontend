@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, Plus } from 'lucide-react';
+import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -47,7 +48,12 @@ export function NewTripDialog({ children }: NewTripDialogProps) {
   const [totalBudget, setTotalBudget] = useState('2000');
   const [travelerCount, setTravelerCount] = useState('2');
 
-  const { data: destinations = [], isLoading: destLoading } = useQuery({
+  const {
+    data: destinations = [],
+    isLoading: destLoading,
+    isError: destError,
+    error: destFetchError,
+  } = useQuery({
     queryKey: ['trip-wizard-destinations'],
     queryFn: async () => {
       const res = await axiosInstance.get('/destination');
@@ -110,7 +116,7 @@ export function NewTripDialog({ children }: NewTripDialogProps) {
     new Date(endDate) >= new Date(startDate);
 
   return (
-    <Dialog open={open} onOpenChange={resetOnOpen}>
+    <Dialog modal={false} open={open} onOpenChange={resetOnOpen}>
       <DialogTrigger asChild>
         {children ?? (
           <Button className="h-14 px-6 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest">
@@ -136,9 +142,26 @@ export function NewTripDialog({ children }: NewTripDialogProps) {
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
+            ) : destError ? (
+              <p className="text-sm text-destructive">
+                Could not load destinations.{' '}
+                {isAxiosError(destFetchError) && destFetchError.response?.data &&
+                typeof destFetchError.response.data === 'object' &&
+                'message' in destFetchError.response.data
+                  ? String((destFetchError.response.data as { message?: string }).message)
+                  : 'Check your connection and try again.'}
+              </p>
+            ) : destinations.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No destinations available yet. Add some in the admin panel, then try again.
+              </p>
             ) : (
-              <Select value={destinationId} onValueChange={(v) => setDestinationId(v || '')}>
-                <SelectTrigger className="h-14 rounded-xl">
+              <Select
+                modal={false}
+                value={destinationId}
+                onValueChange={(v) => setDestinationId(v ?? '')}
+              >
+                <SelectTrigger className="h-14 w-full min-w-0 rounded-xl">
                   <SelectValue placeholder="Select destination" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl max-h-72">

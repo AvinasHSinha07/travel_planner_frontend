@@ -365,7 +365,7 @@ const DestinationsManagementPage = () => {
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="rounded-3xl max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="rounded-3xl max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-black text-2xl">Add New Destination</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -574,7 +574,7 @@ const DestinationsManagementPage = () => {
           }
         }}
       >
-        <DialogContent className="rounded-3xl max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="rounded-3xl max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-black text-2xl">Edit destination</DialogTitle>
             <DialogDescription>Update listing details; AI can refresh category and tags.</DialogDescription>

@@ -82,7 +82,7 @@ const Sidebar = () => {
 
   if (isPending) {
     return (
-      <aside className="fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50 overflow-hidden">
+      <aside className="fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50">
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse text-white/50 text-sm font-bold uppercase tracking-widest">
             Loading...
@@ -93,7 +93,7 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50 overflow-hidden">
+    <aside className="fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50">
       {/* Brand */}
       <div className="p-8">
         <Link href="/" className="flex items-center space-x-3 group">
@@ -122,7 +122,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto custom-scrollbar">
+      <nav data-lenis-prevent className="flex-1 min-h-0 px-4 py-6 space-y-8 overflow-y-auto scrollbar-none">
         {/* Main Console */}
         <div>
           <p className="px-4 text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-6">Main Console</p>

@@ -437,7 +437,7 @@ export default function AdminActivitiesPage() {
       />
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="rounded-[2rem] max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="rounded-[2rem] max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-black uppercase">New activity</DialogTitle>
           </DialogHeader>
@@ -461,7 +461,7 @@ export default function AdminActivitiesPage() {
           }
         }}
       >
-        <DialogContent className="rounded-[2rem] max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="rounded-[2rem] max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-black uppercase">Edit activity</DialogTitle>
           </DialogHeader>

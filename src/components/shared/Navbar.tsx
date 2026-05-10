@@ -12,6 +12,7 @@ import { authClient } from '@/lib/auth-client';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -133,59 +134,67 @@ const Navbar = () => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 rounded-xl">
-                  <DropdownMenuLabel className="font-bold truncate">{session?.user?.email}</DropdownMenuLabel>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="font-bold truncate">{session?.user?.email}</DropdownMenuLabel>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings" className="cursor-pointer">
-                      <User className="w-4 h-4 mr-2" />
-                      Profile & settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <LayoutDashboard className="w-4 h-4 mr-2" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/trips" className="cursor-pointer">
-                      <Map className="w-4 h-4 mr-2" />
-                      My trips
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/bookings" className="cursor-pointer">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Bookings
-                    </Link>
-                  </DropdownMenuItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/settings" className="cursor-pointer">
+                        <User className="w-4 h-4 mr-2" />
+                        Profile & settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="cursor-pointer">
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/trips" className="cursor-pointer">
+                        <Map className="w-4 h-4 mr-2" />
+                        My trips
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/bookings" className="cursor-pointer">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Bookings
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => setTheme('light')}
-                  >
-                    <Sun className="w-4 h-4 mr-2" />
-                    Light
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => setTheme('dark')}
-                  >
-                    <Moon className="w-4 h-4 mr-2" />
-                    Dark
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => setTheme('system')}
-                  >
-                    <Monitor className="w-4 h-4 mr-2" />
-                    System
-                  </DropdownMenuItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => setTheme('light')}
+                    >
+                      <Sun className="w-4 h-4 mr-2" />
+                      Light
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => setTheme('dark')}
+                    >
+                      <Moon className="w-4 h-4 mr-2" />
+                      Dark
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => setTheme('system')}
+                    >
+                      <Monitor className="w-4 h-4 mr-2" />
+                      System
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleLogout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Log out
-                  </DropdownMenuItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

@@ -62,8 +62,9 @@ const MyTripsPage = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const role = (session?.user as { role?: string })?.role;
-  /** Backend allows only USER + ADMIN to DELETE /trip/:id */
-  const canDeleteTrip = role === 'USER' || role === 'ADMIN';
+  /** Backend: USER + TRAVEL_AGENT delete own trips; ADMIN deletes any */
+  const canDeleteTrip =
+    role === 'USER' || role === 'ADMIN' || role === 'TRAVEL_AGENT';
   const [deleteTripId, setDeleteTripId] = useState<string | null>(null);
 
   const { data: trips, isLoading, refetch } = useQuery({

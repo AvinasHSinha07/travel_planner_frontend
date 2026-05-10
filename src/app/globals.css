@@ -102,3 +102,12 @@
     @apply font-sans;
   }
 }
+
+/* Scroll without visible scrollbar (sidebar / overflow regions) */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

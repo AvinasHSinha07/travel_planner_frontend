@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { isAxiosError } from 'axios';
 import axiosInstance from '@/lib/axiosInstance';
 import { useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
@@ -72,14 +73,26 @@ export function SaveDestinationHeart({
 
       return { previousIds, previousList };
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (err, _vars, ctx) => {
       if (ctx?.previousIds !== undefined) {
         queryClient.setQueryData(SAVED_IDS_KEY, ctx.previousIds);
       }
       if (ctx?.previousList !== undefined) {
         queryClient.setQueryData(SAVED_LIST_KEY, ctx.previousList);
       }
-      toast.error('Could not update saved destinations. Try again.');
+      let detail = 'Could not update saved destinations. Try again.';
+      if (isAxiosError(err) && err.response?.data && typeof err.response.data === 'object') {
+        const data = err.response.data as {
+          message?: string;
+          errorSources?: { message?: string }[];
+        };
+        const first = data.errorSources?.[0]?.message;
+        if (first) detail = first;
+        else if (data.message && data.message !== 'Validation Error') detail = data.message;
+        else if (data.errorSources?.length)
+          detail = data.errorSources.map((e) => e.message).filter(Boolean).join('. ') || detail;
+      }
+      toast.error(detail);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: SAVED_IDS_KEY });

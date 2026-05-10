@@ -13,6 +13,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -97,23 +98,27 @@ const DashboardHeader = () => {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64 p-3 rounded-2xl shadow-2xl border-border/50 bg-background/80 backdrop-blur-xl">
-            <DropdownMenuLabel className="font-black uppercase tracking-widest text-[10px] text-muted-foreground px-2 py-3">Management</DropdownMenuLabel>
-            <DropdownMenuItem className="rounded-xl py-3 cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
-              <User className="w-4 h-4 mr-3" />
-              <span className="font-bold">My Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl py-3 cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
-              <Settings className="w-4 h-4 mr-3" />
-              <span className="font-bold">Preferences</span>
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="font-black uppercase tracking-widest text-[10px] text-muted-foreground px-2 py-3">Management</DropdownMenuLabel>
+              <DropdownMenuItem className="rounded-xl py-3 cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
+                <User className="w-4 h-4 mr-3" />
+                <span className="font-bold">My Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="rounded-xl py-3 cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
+                <Settings className="w-4 h-4 mr-3" />
+                <span className="font-bold">Preferences</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator className="my-2 bg-border/50" />
-            <DropdownMenuItem 
-              onClick={handleLogout}
-              className="rounded-xl py-3 cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
-            >
-              <LogOut className="w-4 h-4 mr-3" />
-              <span className="font-bold uppercase tracking-widest text-xs">Terminate</span>
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem 
+                onClick={handleLogout}
+                className="rounded-xl py-3 cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                <span className="font-bold uppercase tracking-widest text-xs">Terminate</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
