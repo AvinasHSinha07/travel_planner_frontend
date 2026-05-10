@@ -143,11 +143,19 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   // Handle logout
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
-      toast.success('Logged out successfully');
-      router.push('/login');
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success('Logged out successfully');
+            router.push('/login');
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message || 'Failed to logout');
+          }
+        }
+      });
     } catch (error) {
-      toast.error('Failed to logout');
+      toast.error('An unexpected error occurred during logout');
     }
   };
 

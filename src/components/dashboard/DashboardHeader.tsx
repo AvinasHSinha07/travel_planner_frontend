@@ -41,16 +41,24 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ onMenuClick }: DashboardHeaderProps) => {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const user = session?.user as SessionUser | undefined;
 
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
-      toast.success('Session terminated successfully');
-      router.push('/login');
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success('Session terminated successfully');
+            router.push('/login');
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message || 'Failed to terminate session');
+          }
+        }
+      });
     } catch (error) {
-      toast.error('Failed to terminate session');
+      toast.error('An unexpected error occurred during termination');
     }
   };
 
@@ -102,12 +110,21 @@ const DashboardHeader = ({ onMenuClick }: DashboardHeaderProps) => {
                 </AvatarFallback>
               </Avatar>
               <div className="hidden lg:block text-left">
-                <p className="text-sm font-black text-foreground leading-tight uppercase tracking-tight">
-                  {user?.name || "Authenticating..."}
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  {user?.role?.replace('_', ' ') || "Guest"}
-                </p>
+                {isPending ? (
+                  <div className="space-y-1">
+                    <div className="w-24 h-3 bg-muted animate-pulse rounded" />
+                    <div className="w-16 h-2 bg-muted animate-pulse rounded" />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm font-black text-foreground leading-tight uppercase tracking-tight">
+                      {user?.name || "Anonymous User"}
+                    </p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      {user?.role?.replace('_', ' ') || "Guest"}
+                    </p>
+                  </>
+                )}
               </div>
               <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </div>

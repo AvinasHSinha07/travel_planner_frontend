@@ -18,13 +18,21 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { data: session, isPending: sessionPending } = authClient.useSession();
+
+  // If already logged in, redirect to dashboard
+  React.useEffect(() => {
+    if (session?.user && !sessionPending) {
+      router.replace('/dashboard');
+    }
+  }, [session, sessionPending, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      console.log('[LOGIN] Attempting login...');
+      console.log('[LOGIN] Cookies before sign in:', document.cookie);
       const result = await authClient.signIn.email({
         email,
         password,

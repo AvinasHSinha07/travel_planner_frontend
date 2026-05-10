@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Globe, User, Bell, Search, LogOut, LayoutDashboard, Map, Calendar, Moon, Sun, Monitor } from 'lucide-react';
+import { Menu, X, Globe, User, Bell, Search, LogOut, LayoutDashboard, Map, Calendar, Moon, Sun, Monitor, ChevronDown } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -56,12 +56,20 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
-      toast.success('Signed out');
-      router.push('/');
-      setIsMobileMenuOpen(false);
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success('Signed out successfully');
+            router.push('/');
+            setIsMobileMenuOpen(false);
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message || 'Could not sign out');
+          }
+        }
+      });
     } catch {
-      toast.error('Could not sign out');
+      toast.error('An unexpected error occurred during sign out');
     }
   };
 
@@ -109,71 +117,93 @@ const Navbar = () => {
           </button>
 
           {isPending ? (
-            <div className="w-24 h-10 rounded-full bg-muted/30 animate-pulse" />
-          ) : isLoggedIn ? (
             <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+              <div className="w-20 h-4 bg-muted rounded animate-pulse hidden lg:block" />
+            </div>
+          ) : isLoggedIn ? (
+            <div className="flex items-center space-x-4">
+              {/* Notification Center */}
               <Link href="/dashboard/notifications">
                 <button
                   type="button"
-                  className="p-2 text-muted-foreground hover:text-foreground transition-colors relative"
+                  className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-accent hover:bg-accent/5 rounded-xl transition-all relative group"
                   aria-label="Notifications"
                 >
-                  <Bell className="w-5 h-5" />
+                  <Bell className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full border-2 border-background ring-2 ring-accent/20 animate-pulse" />
                 </button>
               </Link>
 
+              {/* Profile Card Trigger */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-border hover:bg-secondary/30 transition-colors outline-none"
+                    className="flex items-center gap-3 pl-1 pr-3 py-1 rounded-2xl border border-border/50 bg-secondary/5 hover:bg-secondary/10 hover:border-accent/30 transition-all outline-none group"
                   >
-                    <div className="h-9 w-9 rounded-full border-2 border-accent overflow-hidden bg-muted flex items-center justify-center text-sm font-black">
-                      {session?.user?.name?.charAt(0).toUpperCase() ?? 'U'}
+                    <div className="relative">
+                      <div className="h-9 w-9 rounded-xl border-2 border-accent/20 overflow-hidden bg-gradient-to-br from-accent/20 to-primary/20 flex items-center justify-center text-sm font-black group-hover:border-accent transition-colors">
+                        {session?.user?.image ? (
+                          <img src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-accent">{session?.user?.name?.charAt(0).toUpperCase() ?? 'U'}</span>
+                        )}
+                      </div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-wide max-w-[120px] truncate hidden lg:inline">
-                      {session?.user?.name}
-                    </span>
+                    
+                    <div className="hidden lg:flex flex-col items-start leading-tight">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Traveler</span>
+                      <span className="text-xs font-black text-foreground max-w-[100px] truncate">
+                        {session?.user?.name?.split(' ')[0]}
+                      </span>
+                    </div>
+
+                    <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors hidden sm:block" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-xl">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="font-bold truncate">{session?.user?.email}</DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/settings" className="cursor-pointer">
-                        <User className="w-4 h-4 mr-2" />
-                        Profile & settings
+                
+                <DropdownMenuContent align="end" className="w-64 p-2 rounded-2xl shadow-2xl border-border/50 bg-background/80 backdrop-blur-xl">
+                  <DropdownMenuLabel className="px-3 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-black uppercase tracking-tighter text-foreground">{session?.user?.name}</span>
+                      <span className="text-[10px] font-medium text-muted-foreground truncate">{session?.user?.email}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  
+                  <DropdownMenuSeparator className="opacity-50" />
+                  
+                  <DropdownMenuGroup className="space-y-1 mt-1">
+                    <DropdownMenuItem asChild className="rounded-xl py-2.5 cursor-pointer focus:bg-accent/5">
+                      <Link href="/dashboard/settings">
+                        <User className="w-4 h-4 mr-3 text-muted-foreground" />
+                        <span className="font-bold text-sm">Account Settings</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="cursor-pointer">
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
-                        Dashboard
+                    <DropdownMenuItem asChild className="rounded-xl py-2.5 cursor-pointer focus:bg-accent/5">
+                      <Link href="/dashboard">
+                        <LayoutDashboard className="w-4 h-4 mr-3 text-muted-foreground" />
+                        <span className="font-bold text-sm">Member Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/trips" className="cursor-pointer">
-                        <Map className="w-4 h-4 mr-2" />
-                        My trips
+                    <DropdownMenuItem asChild className="rounded-xl py-2.5 cursor-pointer focus:bg-accent/5">
+                      <Link href="/dashboard/trips">
+                        <Map className="w-4 h-4 mr-3 text-muted-foreground" />
+                        <span className="font-bold text-sm">Travel Itineraries</span>
                       </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/bookings" className="cursor-pointer">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Bookings
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleLogout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Log out
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
+                  
+                  <DropdownMenuSeparator className="opacity-50 my-2" />
+                  
+                  <DropdownMenuItem 
+                    className="rounded-xl py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/5 font-black uppercase tracking-widest text-[10px]" 
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-3" />
+                    Terminate Session
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
