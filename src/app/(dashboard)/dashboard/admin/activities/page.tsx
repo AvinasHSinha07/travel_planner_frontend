@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 
@@ -176,6 +176,37 @@ export default function AdminActivitiesPage() {
     },
   });
 
+  const generateMutation = useMutation({
+    mutationFn: async (payload: { type: string; context: any }) => {
+      const response = await axiosInstance.post('/ai/generate-content', payload);
+      return response.data.data;
+    },
+    onSuccess: (data) => {
+      setForm((prev) => ({
+        ...prev,
+        description: data.description || prev.description,
+        type: data.category || prev.type,
+      }));
+      toast.success('AI content generated');
+    },
+    onError: () => toast.error('AI generation failed'),
+  });
+
+  const handleAIGenerate = () => {
+    if (!form.name) {
+      toast.error('Activity name is required');
+      return;
+    }
+    const dest = destinations.find(d => d.id === form.destinationId);
+    generateMutation.mutate({
+      type: 'activity',
+      context: { 
+        name: form.name, 
+        destinationName: dest ? `${dest.name}, ${dest.country}` : undefined 
+      },
+    });
+  };
+
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
       await axiosInstance.delete(`/activity/${id}`);
@@ -295,7 +326,24 @@ export default function AdminActivitiesPage() {
         </Select>
       </div>
       <div className="space-y-2">
-        <Label className="text-xs font-black uppercase">Name</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-black uppercase">Name</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 text-[10px] font-black uppercase text-primary"
+            onClick={handleAIGenerate}
+            disabled={generateMutation.isPending || !form.name}
+          >
+            {generateMutation.isPending ? (
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            ) : (
+              <Sparkles className="w-3 h-3 mr-1 text-primary" />
+            )}
+            AI Magic
+          </Button>
+        </div>
         <Input
           className="rounded-xl"
           value={form.name}

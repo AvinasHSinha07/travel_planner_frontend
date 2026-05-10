@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 
@@ -182,6 +182,37 @@ export default function AdminAccommodationsPage() {
     },
   });
 
+  const generateMutation = useMutation({
+    mutationFn: async (payload: { type: string; context: any }) => {
+      const response = await axiosInstance.post('/ai/generate-content', payload);
+      return response.data.data;
+    },
+    onSuccess: (data) => {
+      setForm((prev) => ({
+        ...prev,
+        amenities: Array.isArray(data.tags) ? data.tags.join(', ') : prev.amenities,
+        type: (data.category?.toUpperCase() || prev.type) as any,
+      }));
+      toast.success('AI suggestions applied');
+    },
+    onError: () => toast.error('AI generation failed'),
+  });
+
+  const handleAIGenerate = () => {
+    if (!form.name) {
+      toast.error('Accommodation name is required');
+      return;
+    }
+    const dest = destinations.find(d => d.id === form.destinationId);
+    generateMutation.mutate({
+      type: 'accommodation',
+      context: { 
+        name: form.name, 
+        destinationName: dest ? `${dest.name}, ${dest.country}` : undefined 
+      },
+    });
+  };
+
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
       await axiosInstance.delete(`/accommodation/${id}`);
@@ -284,7 +315,24 @@ export default function AdminAccommodationsPage() {
         </Select>
       </div>
       <div className="space-y-2">
-        <Label className="text-xs font-black uppercase">Name</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-black uppercase">Name</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 text-[10px] font-black uppercase text-primary"
+            onClick={handleAIGenerate}
+            disabled={generateMutation.isPending || !form.name}
+          >
+            {generateMutation.isPending ? (
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            ) : (
+              <Sparkles className="w-3 h-3 mr-1" />
+            )}
+            AI Assist
+          </Button>
+        </div>
         <Input
           className="rounded-xl"
           value={form.name}

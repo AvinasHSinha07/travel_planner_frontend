@@ -213,6 +213,49 @@ const DestinationsManagementPage = () => {
     },
   });
 
+  const generateMutation = useMutation({
+    mutationFn: async (payload: { type: string; context: any }) => {
+      const response = await axiosInstance.post('/ai/generate-content', payload);
+      return response.data.data;
+    },
+    onSuccess: (data, variables) => {
+      if (variables.context.isEdit && editForm) {
+        setEditForm({
+          ...editForm,
+          description: data.description || editForm.description,
+          summary: data.summary || editForm.summary,
+          category: data.category || editForm.category,
+          tags: Array.isArray(data.tags) ? data.tags : editForm.tags,
+        });
+      } else {
+        setNewDestination((prev) => ({
+          ...prev,
+          description: data.description || prev.description,
+          summary: data.summary || prev.summary,
+          category: data.category || prev.category,
+          tags: Array.isArray(data.tags) ? data.tags : prev.tags,
+        }));
+      }
+      toast.success('AI content generated successfully');
+    },
+    onError: () => toast.error('AI content generation failed'),
+  });
+
+  const handleAIGenerate = (isEdit: boolean) => {
+    const name = isEdit ? editForm?.name : newDestination.name;
+    const country = isEdit ? editForm?.country : newDestination.country;
+
+    if (!name || !country) {
+      toast.error('Name and country are required for AI generation');
+      return;
+    }
+
+    generateMutation.mutate({
+      type: 'destination',
+      context: { name, location: country, isEdit },
+    });
+  };
+
   const handleAICategorize = () => {
     if (!newDestination.name || !newDestination.description) {
       toast.error('Please enter name and description first');
@@ -467,7 +510,24 @@ const DestinationsManagementPage = () => {
           <form onSubmit={handleCreate} className="space-y-4 md:space-y-6 mt-4 md:mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-[10px] font-black uppercase text-primary hover:text-primary hover:bg-primary/5"
+                    onClick={() => handleAIGenerate(false)}
+                    disabled={generateMutation.isPending || !newDestination.name || !newDestination.country}
+                  >
+                    {generateMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mr-1" />
+                    )}
+                    Magic Generate
+                  </Button>
+                </div>
                 <Input
                   value={newDestination.name}
                   onChange={(e) => setNewDestination(prev => ({ ...prev, name: e.target.value }))}
@@ -680,7 +740,24 @@ const DestinationsManagementPage = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-[10px] font-black uppercase text-primary hover:text-primary hover:bg-primary/5"
+                      onClick={() => handleAIGenerate(true)}
+                      disabled={generateMutation.isPending || !editForm.name || !editForm.country}
+                    >
+                      {generateMutation.isPending ? (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3 h-3 mr-1" />
+                      )}
+                      Magic AI
+                    </Button>
+                  </div>
                   <Input
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
