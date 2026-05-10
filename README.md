@@ -12,6 +12,7 @@
 
 ## 📖 Table of Contents
 - [Project Overview](#-project-overview)
+- [Live Demo & Deployment](#-live-demo--deployment)
 - [Key Features in Detail](#-key-features-in-detail)
 - [Project Structure](#-project-structure)
 - [AI Experience](#-ai-experience)
@@ -25,6 +26,10 @@
 
 ## 🌟 Project Overview
 TRIPPLANNERAI is not just a travel app; it's a personal AI travel concierge. It solves the problem of tedious trip planning by offering an intuitive interface where users can describe their dream vacation and receive a fully tailored, bookable itinerary in seconds. The frontend is designed with a "Luxury Startup" aesthetic—clean, fast, and interactive.
+
+## 🌐 Live Demo & Deployment
+- **Live Application:** [https://travel-planner-frontend-silk.vercel.app/](https://travel-planner-frontend-silk.vercel.app/)
+- **API Documentation:** [https://travel-planner-backend-1-57c6.onrender.com/](https://travel-planner-backend-1-57c6.onrender.com/)
 
 ---
 
