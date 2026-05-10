@@ -42,6 +42,8 @@ type AnalyticsResponse =
       monthlySeries: { month: string; bookings: number; revenue: number; trips: number }[];
     };
 
+import RecommendationsSection from '@/components/dashboard/RecommendationsSection';
+
 const DashboardOverview = () => {
   const { data: session } = authClient.useSession();
   const user = session?.user;
@@ -139,6 +141,17 @@ const DashboardOverview = () => {
               : 'Your global expedition dashboard'}
         </p>
       </motion.div>
+      
+      {/* AI Recommendations */}
+      {userRole === 'USER' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <RecommendationsSection />
+        </motion.div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
