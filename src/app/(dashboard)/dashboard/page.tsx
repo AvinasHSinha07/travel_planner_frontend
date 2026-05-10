@@ -105,16 +105,16 @@ const DashboardOverview = () => {
       ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 md:space-y-10">
       {/* Welcome Banner */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
       >
-        <h1 className="text-4xl font-black tracking-tight text-foreground uppercase mb-2">
+        <h1 className="text-2xl md:text-4xl font-black tracking-tight text-foreground uppercase mb-1 md:mb-2">
           Welcome Back, {user?.name?.split(' ')[0] || 'Captain'}
         </h1>
-        <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-xs">
+        <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px] md:text-xs">
           {userRole === 'ADMIN'
             ? 'Global platform oversight'
             : userRole === 'TRAVEL_AGENT'
@@ -124,18 +124,18 @@ const DashboardOverview = () => {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {statConfig.map((stat, i) => (
           <motion.div 
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="p-8 bg-card border border-border/50 rounded-[2.5rem] hover:shadow-xl transition-all group"
+            className="p-6 md:p-8 bg-card border border-border/50 rounded-[2rem] md:rounded-[2.5rem] hover:shadow-xl transition-all group"
           >
-            <div className="flex justify-between items-start mb-6">
-              <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-colors duration-500">
-                 <stat.icon className="w-6 h-6 text-primary group-hover:text-white" />
+            <div className="flex justify-between items-start mb-4 md:mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/5 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-colors duration-500">
+                 <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-primary group-hover:text-white" />
               </div>
               <div className={cn("flex items-center space-x-1 text-[10px] font-black uppercase tracking-widest", stat.up ? "text-emerald-500" : "text-rose-500")}>
                 <span>{stat.trend}</span>
@@ -143,18 +143,18 @@ const DashboardOverview = () => {
               </div>
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-1">{stat.label}</p>
-            <h3 className="text-3xl font-black text-foreground">{stat.value}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-foreground">{stat.value}</h3>
           </motion.div>
         ))}
       </div>
 
       {/* Main Charts Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         {/* Activity Chart */}
-        <div className="lg:col-span-8 p-10 bg-card border border-border/50 rounded-[3.5rem]">
-          <div className="flex justify-between items-center mb-10">
+        <div className="lg:col-span-8 p-6 md:p-10 bg-card border border-border/50 rounded-[2.5rem] md:rounded-[3.5rem]">
+          <div className="flex justify-between items-center mb-6 md:mb-10">
             <div>
-              <h3 className="text-xl font-black uppercase tracking-widest">
+              <h3 className="text-lg md:text-xl font-black uppercase tracking-widest">
                 {staff ? 'Platform velocity' : 'Travel velocity'}
               </h3>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
@@ -205,36 +205,35 @@ const DashboardOverview = () => {
           </div>
         </div>
 
-        {/* Right Info Panel */}
-        <div className="lg:col-span-4 space-y-8">
-           <div className="p-8 bg-[#002b42] text-white rounded-[3rem] shadow-2xl relative overflow-hidden group">
+        <div className="lg:col-span-4 space-y-6 md:space-y-8">
+           <div className="p-6 md:p-8 bg-[#002b42] text-white rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
-              <h3 className="text-2xl font-black mb-6 relative z-10">AI CONCIERGE <br />AVAILABLE</h3>
-              <p className="text-white/60 text-sm font-medium mb-8 relative z-10">Your next high-end expedition is ready to be architected.</p>
-              <button className="w-full h-16 bg-[#edae49] hover:bg-[#edae49]/90 text-[#003d5b] rounded-2xl text-sm font-black shadow-xl shadow-[#edae49]/20 transition-all hover:scale-[1.02]">
+              <h3 className="text-xl md:text-2xl font-black mb-4 md:mb-6 relative z-10 uppercase">AI CONCIERGE <br />AVAILABLE</h3>
+              <p className="text-white/60 text-xs md:text-sm font-medium mb-6 md:mb-8 relative z-10">Your next high-end expedition is ready to be architected.</p>
+              <button className="w-full h-14 md:h-16 bg-[#edae49] hover:bg-[#edae49]/90 text-[#003d5b] rounded-2xl text-sm font-black shadow-xl shadow-[#edae49]/20 transition-all hover:scale-[1.02]">
                  START PLANNING
               </button>
            </div>
 
-           <div className="p-8 bg-card border border-border/50 rounded-[3rem]">
-              <h3 className="text-sm font-black uppercase tracking-widest mb-6">Recent Status</h3>
-              <div className="space-y-6">
+           <div className="p-6 md:p-8 bg-card border border-border/50 rounded-[2rem] md:rounded-[3rem]">
+              <h3 className="text-xs font-black uppercase tracking-widest mb-4 md:mb-6 text-muted-foreground">Recent Status</h3>
+              <div className="space-y-5 md:space-y-6">
                 {[
                   { name: 'System Status', value: 'Optimal', type: 'Success' },
                   { name: 'Active Sessions', value: '24', type: 'Neutral' },
                   { name: 'API Latency', value: '12ms', type: 'Neutral' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center justify-between group cursor-pointer">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                        <TrendingUp className="w-5 h-5 text-primary" />
+                    <div className="flex items-center space-x-3 md:space-x-4">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                        <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-foreground">{item.name}</p>
+                        <p className="text-xs md:text-sm font-black text-foreground uppercase">{item.name}</p>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{item.value}</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-accent bg-accent/10 px-3 py-1 rounded-full">{item.type}</span>
+                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-accent bg-accent/10 px-2.5 py-1 rounded-full">{item.type}</span>
                   </div>
                 ))}
               </div>

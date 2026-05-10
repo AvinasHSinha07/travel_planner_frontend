@@ -157,8 +157,7 @@ export function NewTripDialog({ children }: NewTripDialogProps) {
               </p>
             ) : (
               <Select
-                modal={false}
-                value={destinationId}
+                value={destinationId || undefined}
                 onValueChange={(v) => setDestinationId(v ?? '')}
               >
                 <SelectTrigger className="h-14 w-full min-w-0 rounded-xl">

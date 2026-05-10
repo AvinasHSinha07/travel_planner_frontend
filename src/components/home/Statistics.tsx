@@ -14,11 +14,11 @@ const Statistics = () => {
       <div className="container mx-auto px-6 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {stats.map((stat, i) => (
-            <div key={i} className="text-center group p-6 rounded-3xl hover:bg-secondary/5 transition-colors duration-500">
-              <h3 className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-accent mb-4 drop-shadow-sm transform group-hover:scale-105 transition-transform duration-300">
+            <div key={i} className="text-center group p-4 md:p-6 rounded-3xl hover:bg-secondary/5 transition-colors duration-500">
+              <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-accent mb-2 md:mb-4 drop-shadow-sm transform group-hover:scale-105 transition-transform duration-300">
                 {stat.value}
               </h3>
-              <p className="text-muted-foreground font-bold tracking-[0.2em] uppercase text-xs sm:text-sm group-hover:text-foreground transition-colors">
+              <p className="text-muted-foreground font-bold tracking-[0.15em] md:tracking-[0.2em] uppercase text-[10px] md:text-xs lg:text-sm group-hover:text-foreground transition-colors">
                 {stat.label}
               </p>
             </div>

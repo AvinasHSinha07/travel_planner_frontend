@@ -100,32 +100,31 @@ const RegisterPage = () => {
       </div>
 
       {/* Form Section */}
-      <div className="flex-1 flex flex-col justify-center px-8 md:px-20 lg:px-32 relative z-10 bg-background">
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-32 relative z-10 bg-background overflow-y-auto py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-md w-full mx-auto"
         >
-          <div className="mb-12 lg:hidden">
-             <Link href="/" className="flex items-center space-x-2 group">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-md">
-                <Globe className="text-primary-foreground w-6 h-6" />
-              </div>
-              <span className="text-2xl font-black tracking-tighter text-foreground uppercase">
-                TRIPLANNER<span className="text-[#edae49]">AI</span>
-              </span>
-            </Link>
-          </div>
+          {/* Logo - Moved inside for better flow on mobile */}
+          <Link href="/" className="flex items-center space-x-3 group mb-10 md:mb-12">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-md">
+              <Globe className="text-primary-foreground w-6 h-6" />
+            </div>
+            <span className="text-2xl font-black tracking-tighter text-foreground uppercase">
+              TRIPLANNER<span className="text-[#edae49]">AI</span>
+            </span>
+          </Link>
 
-          <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-3 text-foreground">Create Account</h1>
-          <p className="text-lg text-muted-foreground mb-10 font-medium">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-3 text-foreground">Create Account</h1>
+          <p className="text-base sm:text-lg text-muted-foreground mb-8 md:mb-10 font-medium">
             Join the elite circle of AI-driven travelers.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-black uppercase tracking-widest flex items-center space-x-2 text-foreground/60">
+              <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center space-x-2 text-foreground/60">
                 <UserIcon className="w-4 h-4 text-primary" />
                 <span>Full Name</span>
               </label>
@@ -134,13 +133,13 @@ const RegisterPage = () => {
                 placeholder="Alex Morgan"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-lg font-medium"
+                className="h-12 sm:h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-base sm:text-lg font-medium"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-black uppercase tracking-widest flex items-center space-x-2 text-foreground/60">
+              <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center space-x-2 text-foreground/60">
                 <Mail className="w-4 h-4 text-primary" />
                 <span>Email Address</span>
               </label>
@@ -149,13 +148,13 @@ const RegisterPage = () => {
                 placeholder="alex@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-lg font-medium"
+                className="h-12 sm:h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-base sm:text-lg font-medium"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-black uppercase tracking-widest flex items-center space-x-2 text-foreground/60">
+              <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center space-x-2 text-foreground/60">
                 <Lock className="w-4 h-4 text-primary" />
                 <span>Password</span>
               </label>
@@ -164,39 +163,39 @@ const RegisterPage = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-lg font-medium"
+                className="h-12 sm:h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-base sm:text-lg font-medium"
                 required
               />
             </div>
 
             <div className="space-y-4">
-              <label className="text-sm font-black uppercase tracking-widest text-foreground/60">Select Account Type</label>
-              <div className="grid grid-cols-2 gap-4">
+              <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-foreground/60">Select Account Type</label>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => setRole('USER')}
                   className={cn(
-                    "p-4 rounded-2xl border-2 transition-all text-left group",
+                    "p-3 sm:p-4 rounded-2xl border-2 transition-all text-left group",
                     role === 'USER' 
                       ? "border-primary bg-primary/5 ring-4 ring-primary/10" 
                       : "border-border hover:border-primary/40"
                   )}
                 >
-                  <ShieldCheck className={cn("w-6 h-6 mb-2", role === 'USER' ? "text-primary" : "text-muted-foreground")} />
-                  <p className="text-xs font-black uppercase tracking-widest">Traveler</p>
+                  <ShieldCheck className={cn("w-5 h-5 sm:w-6 sm:h-6 mb-2", role === 'USER' ? "text-primary" : "text-muted-foreground")} />
+                  <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Traveler</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('TRAVEL_AGENT')}
                   className={cn(
-                    "p-4 rounded-2xl border-2 transition-all text-left group",
+                    "p-3 sm:p-4 rounded-2xl border-2 transition-all text-left group",
                     role === 'TRAVEL_AGENT' 
                       ? "border-primary bg-primary/5 ring-4 ring-primary/10" 
                       : "border-border hover:border-primary/40"
                   )}
                 >
-                  <Briefcase className={cn("w-6 h-6 mb-2", role === 'TRAVEL_AGENT' ? "text-primary" : "text-muted-foreground")} />
-                  <p className="text-xs font-black uppercase tracking-widest">Travel Agent</p>
+                  <Briefcase className={cn("w-5 h-5 sm:w-6 sm:h-6 mb-2", role === 'TRAVEL_AGENT' ? "text-primary" : "text-muted-foreground")} />
+                  <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Agent</p>
                 </button>
               </div>
             </div>
@@ -204,16 +203,16 @@ const RegisterPage = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-16 rounded-2xl text-lg font-black bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+              className="w-full h-14 sm:h-16 rounded-2xl text-base sm:text-lg font-black bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
             >
               {isLoading ? 'ESTABLISHING CONNECTION...' : 'GET STARTED'}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </form>
 
-          <p className="mt-10 text-center text-sm font-medium text-muted-foreground">
+          <p className="mt-8 md:mt-10 text-center text-sm font-medium text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/login" className="text-primary font-black hover:text-accent transition-colors">
+            <Link href="/login" className="text-primary font-black hover:text-[#edae49] transition-colors">
               Sign in here
             </Link>
           </p>

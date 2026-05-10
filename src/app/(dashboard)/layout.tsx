@@ -7,6 +7,7 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { motion } from 'framer-motion';
 import { authClient } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function getUserRole(session: unknown): string {
   const u = (session as { user?: { role?: string } } | null | undefined)?.user;
@@ -21,11 +22,17 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close sidebar on route change for mobile
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!isPending && !session && mounted) {
@@ -69,20 +76,31 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      <main className="pl-80 transition-all duration-500">
-        <DashboardHeader />
+      <main className={cn(
+        "transition-all duration-500 min-h-screen flex flex-col",
+        "pl-0 lg:pl-80"
+      )}>
+        <DashboardHeader onMenuClick={() => setSidebarOpen(true)} />
         
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="p-10"
+          className="p-4 md:p-6 lg:p-10 flex-1"
         >
           {children}
         </motion.div>
       </main>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }

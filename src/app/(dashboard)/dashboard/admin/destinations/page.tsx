@@ -71,6 +71,8 @@ type EditDestinationForm = {
 
 const DestinationsManagementPage = () => {
   const { data: session } = authClient.useSession();
+  const role = (session?.user as { role?: string })?.role;
+  const canDeleteDestination = role === 'ADMIN';
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -99,7 +101,7 @@ const DestinationsManagementPage = () => {
       });
       return response.data.data as Destination[];
     },
-    enabled: (session?.user as any)?.role === 'ADMIN' || (session?.user as any)?.role === 'TRAVEL_AGENT',
+    enabled: role === 'ADMIN' || role === 'TRAVEL_AGENT',
   });
 
   const createMutation = useMutation({
@@ -270,27 +272,27 @@ const DestinationsManagementPage = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground uppercase mb-2">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground uppercase mb-1 md:mb-2">
             Destinations
           </h1>
-          <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-xs">
+          <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px] md:text-xs">
             Manage Platform Destinations
           </p>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="relative flex-1 sm:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search destinations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-14 pl-12 rounded-xl border-border/60"
+              className="h-12 md:h-14 pl-10 md:pl-12 rounded-xl border-border/60"
             />
           </div>
           <Button 
-            className="h-14 px-6 rounded-xl bg-primary font-black uppercase text-xs tracking-widest"
+            className="h-12 md:h-14 px-6 rounded-xl bg-primary font-black uppercase text-xs tracking-widest whitespace-nowrap"
             onClick={() => setIsCreateDialogOpen(true)}
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -300,22 +302,22 @@ const DestinationsManagementPage = () => {
       </div>
 
       {/* Destinations Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {destinations?.map((destination, index) => (
           <motion.div
             key={destination.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-card border border-border/50 rounded-[2rem] p-6 hover:shadow-lg transition-all group"
+            className="bg-card border border-border/50 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 hover:shadow-lg transition-all group"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Map className="w-6 h-6 text-primary" />
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Map className="w-5 h-5 md:w-6 md:h-6 text-primary" />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl">
+                  <Button variant="ghost" size="icon" className="w-9 h-9 md:w-10 md:h-10 rounded-xl">
                     <MoreHorizontal className="w-5 h-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -324,39 +326,41 @@ const DestinationsManagementPage = () => {
                     <Edit3 className="w-4 h-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-red-500"
-                    onClick={() => deleteMutation.mutate(destination.id)}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
+                  {canDeleteDestination && (
+                    <DropdownMenuItem 
+                      className="text-red-500"
+                      onClick={() => deleteMutation.mutate(destination.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
-            <h3 className="text-xl font-black text-foreground mb-1">{destination.name}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{destination.country}</p>
+            <h3 className="text-lg md:text-xl font-black text-foreground mb-1 truncate">{destination.name}</h3>
+            <p className="text-xs md:text-sm text-muted-foreground mb-4 truncate">{destination.country}</p>
 
             <div className="flex flex-wrap gap-2 mb-4">
-              <Badge variant="outline" className="rounded-full text-[10px] font-black uppercase">
+              <Badge variant="outline" className="rounded-full text-[9px] md:text-[10px] font-black uppercase">
                 {destination.category}
               </Badge>
               {destination.isFeatured && (
-                <Badge className="bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase">
+                <Badge className="bg-primary/10 text-primary rounded-full text-[9px] md:text-[10px] font-black uppercase">
                   Featured
                 </Badge>
               )}
             </div>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm pt-4 border-t border-border/30">
               <div>
-                <span className="text-muted-foreground text-xs uppercase">Cost/Day</span>
-                <p className="font-black">${destination.avgCostPerDay}</p>
+                <span className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest">Cost/Day</span>
+                <p className="font-black text-base md:text-lg">${destination.avgCostPerDay}</p>
               </div>
               <div className="text-right">
-                <span className="text-muted-foreground text-xs uppercase">Rating</span>
-                <p className="font-black">⭐ {destination.rating.toFixed(1)}</p>
+                <span className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest">Rating</span>
+                <p className="font-black text-base md:text-lg">⭐ {destination.rating.toFixed(1)}</p>
               </div>
             </div>
           </motion.div>
@@ -365,32 +369,32 @@ const DestinationsManagementPage = () => {
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="rounded-3xl max-w-2xl">
+        <DialogContent className="rounded-3xl max-w-2xl w-[95vw] md:w-full overflow-y-auto max-h-[90dvh]">
           <DialogHeader>
-            <DialogTitle className="font-black text-2xl">Add New Destination</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
+            <DialogTitle className="font-black text-xl md:text-2xl">Add New Destination</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs md:text-sm">
               Create a new destination for the platform
             </DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={handleCreate} className="space-y-6 mt-6">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleCreate} className="space-y-4 md:space-y-6 mt-4 md:mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Name</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
                 <Input
                   value={newDestination.name}
                   onChange={(e) => setNewDestination(prev => ({ ...prev, name: e.target.value }))}
-                  className="h-14 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                   placeholder="Destination name"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Country</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Country</Label>
                 <Input
                   value={newDestination.country}
                   onChange={(e) => setNewDestination(prev => ({ ...prev, country: e.target.value }))}
-                  className="h-14 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                   placeholder="Country"
                   required
                 />
@@ -398,36 +402,36 @@ const DestinationsManagementPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest">Description</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</Label>
               <Textarea
                 value={newDestination.description}
                 onChange={(e) => setNewDestination(prev => ({ ...prev, description: e.target.value }))}
-                className="rounded-xl min-h-[100px]"
+                className="rounded-xl min-h-[80px] md:min-h-[100px]"
                 placeholder="Detailed description..."
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest">Summary</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Summary</Label>
               <Input
                 value={newDestination.summary}
                 onChange={(e) => setNewDestination(prev => ({ ...prev, summary: e.target.value }))}
-                className="h-14 rounded-xl"
+                className="h-12 md:h-14 rounded-xl"
                 placeholder="Short summary (1-2 sentences)"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-black uppercase tracking-widest">Category</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</Label>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs font-black uppercase text-primary"
+                    className="h-8 text-[10px] font-black uppercase text-primary"
                     onClick={handleAICategorize}
                     disabled={aiCategorizing || !newDestination.name || !newDestination.description}
                   >
@@ -442,18 +446,18 @@ const DestinationsManagementPage = () => {
                 <Input
                   value={newDestination.category}
                   onChange={(e) => setNewDestination(prev => ({ ...prev, category: e.target.value }))}
-                  className="h-14 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                   placeholder="e.g., Beach, Cultural"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Avg Cost/Day ($)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Avg Cost/Day ($)</Label>
                 <Input
                   type="number"
                   value={newDestination.avgCostPerDay}
                   onChange={(e) => setNewDestination(prev => ({ ...prev, avgCostPerDay: e.target.value }))}
-                  className="h-14 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                   placeholder="150"
                   required
                 />
@@ -461,7 +465,7 @@ const DestinationsManagementPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest">Tags (comma-separated)</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tags (comma-separated)</Label>
               <Input
                 value={newDestination.tags.join(', ')}
                 onChange={(e) =>
@@ -473,27 +477,27 @@ const DestinationsManagementPage = () => {
                       .filter(Boolean),
                   }))
                 }
-                className="h-14 rounded-xl"
+                className="h-12 md:h-14 rounded-xl"
                 placeholder="beach, family, summer"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Best Season</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Best Season</Label>
                 <Input
                   value={newDestination.bestSeason}
                   onChange={(e) => setNewDestination(prev => ({ ...prev, bestSeason: e.target.value }))}
-                  className="h-14 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                   placeholder="e.g., May-October"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Currency</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Currency</Label>
                 <Input
                   value={newDestination.currency}
                   onChange={(e) => setNewDestination(prev => ({ ...prev, currency: e.target.value }))}
-                  className="h-14 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                   placeholder="USD"
                 />
               </div>
@@ -574,66 +578,66 @@ const DestinationsManagementPage = () => {
           }
         }}
       >
-        <DialogContent className="rounded-3xl max-w-2xl">
+        <DialogContent className="rounded-3xl max-w-2xl w-[95vw] md:w-full overflow-y-auto max-h-[90dvh]">
           <DialogHeader>
-            <DialogTitle className="font-black text-2xl">Edit destination</DialogTitle>
-            <DialogDescription>Update listing details; AI can refresh category and tags.</DialogDescription>
+            <DialogTitle className="font-black text-xl md:text-2xl">Edit Destination</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs md:text-sm">Update listing details; AI can refresh category and tags.</DialogDescription>
           </DialogHeader>
           {editForm && (
             <form
-              className="space-y-6 mt-6"
+              className="space-y-4 md:space-y-6 mt-4 md:mt-6"
               onSubmit={(e) => {
                 e.preventDefault();
                 updateMutation.mutate(editForm);
               }}
             >
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest">Name</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
                   <Input
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="h-12 rounded-xl"
+                    className="h-12 md:h-14 rounded-xl"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest">Country</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Country</Label>
                   <Input
                     value={editForm.country}
                     onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
-                    className="h-12 rounded-xl"
+                    className="h-12 md:h-14 rounded-xl"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Description</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</Label>
                 <Textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  className="rounded-xl min-h-[100px]"
+                  className="rounded-xl min-h-[80px] md:min-h-[100px]"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Summary</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Summary</Label>
                 <Input
                   value={editForm.summary}
                   onChange={(e) => setEditForm({ ...editForm, summary: e.target.value })}
-                  className="h-12 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <Label className="text-xs font-black uppercase tracking-widest">Category</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</Label>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-8 text-xs font-black uppercase text-primary"
+                      className="h-8 text-[10px] font-black uppercase text-primary"
                       onClick={handleEditAICategorize}
                       disabled={aiEditCategorizing || !editForm.name || !editForm.description}
                     >
@@ -648,23 +652,23 @@ const DestinationsManagementPage = () => {
                   <Input
                     value={editForm.category}
                     onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                    className="h-12 rounded-xl"
+                    className="h-12 md:h-14 rounded-xl"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest">Avg cost / day</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Avg cost / day</Label>
                   <Input
                     type="number"
                     value={editForm.avgCostPerDay}
                     onChange={(e) => setEditForm({ ...editForm, avgCostPerDay: e.target.value })}
-                    className="h-12 rounded-xl"
+                    className="h-12 md:h-14 rounded-xl"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest">Tags</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tags</Label>
                 <Input
                   value={editForm.tags.join(', ')}
                   onChange={(e) =>
@@ -676,29 +680,29 @@ const DestinationsManagementPage = () => {
                         .filter(Boolean),
                     })
                   }
-                  className="h-12 rounded-xl"
+                  className="h-12 md:h-14 rounded-xl"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest">Best season</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Best season</Label>
                   <Input
                     value={editForm.bestSeason}
                     onChange={(e) => setEditForm({ ...editForm, bestSeason: e.target.value })}
-                    className="h-12 rounded-xl"
+                    className="h-12 md:h-14 rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest">Currency</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Currency</Label>
                   <Input
                     value={editForm.currency}
                     onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
-                    className="h-12 rounded-xl"
+                    className="h-12 md:h-14 rounded-xl"
                   />
                 </div>
               </div>
               <div className="space-y-3">
-                <Label className="text-xs font-black uppercase tracking-widest">Images</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Images</Label>
                 <ImageUploadButton
                   folder="destinations"
                   label="Add image"
@@ -734,7 +738,7 @@ const DestinationsManagementPage = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 rounded-xl"
+                  className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase text-xs tracking-widest"
                   onClick={() => {
                     setEditOpen(false);
                     setEditForm(null);
@@ -742,8 +746,8 @@ const DestinationsManagementPage = () => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1 rounded-xl" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save'}
+                <Button type="submit" className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase text-xs tracking-widest" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
                 </Button>
               </div>
             </form>

@@ -49,6 +49,7 @@ type BookingRow = {
 
 type TripDetail = {
   id: string;
+  userId: string;
   title: string;
   status: string;
   startDate: string;
@@ -72,6 +73,8 @@ export default function TripDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
+  const sessionUserId = session?.user?.id ?? '';
+  const sessionRole = (session?.user as { role?: string })?.role ?? 'USER';
   const [pollQueuedItinerary, setPollQueuedItinerary] = useState(false);
 
   const { data: trip, isLoading } = useQuery({
@@ -203,6 +206,13 @@ export default function TripDetailPage() {
     );
   }
 
+  const isOwner = trip.userId === sessionUserId;
+  const isAdmin = sessionRole === 'ADMIN';
+  const isTravelAgent = sessionRole === 'TRAVEL_AGENT';
+  const canEditTrip = isOwner || isAdmin;
+  const canGenerateAiItinerary = isOwner || isAdmin;
+  const canBookOwnTrip = isOwner;
+
   return (
     <div className="space-y-10 max-w-5xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -224,13 +234,21 @@ export default function TripDetailPage() {
             <Share2 className="w-4 h-4 mr-2" />
             Share
           </Button>
-          <Link href={`/dashboard/trips/${id}/edit`}>
-            <Button variant="outline" className="rounded-xl">
-              Edit
-            </Button>
-          </Link>
+          {canEditTrip && (
+            <Link href={`/dashboard/trips/${id}/edit`}>
+              <Button variant="outline" className="rounded-xl">
+                Edit
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
+
+      {isTravelAgent && !isOwner && (
+        <p className="text-sm text-muted-foreground rounded-2xl border border-border/60 bg-muted/30 px-4 py-3">
+          You are viewing a traveler&apos;s trip. Editing, AI itinerary generation, and checkout are limited to the trip owner (admins can edit and run AI).
+        </p>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <motion.div
@@ -285,33 +303,39 @@ export default function TripDetailPage() {
         </section>
       )}
 
-      <div className="flex flex-wrap gap-3">
-        <Button
-          className="rounded-2xl font-black uppercase text-xs tracking-widest h-12"
-          onClick={() => aiMutation.mutate()}
-          disabled={aiMutation.isPending}
-        >
-          {aiMutation.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-          ) : (
-            <Sparkles className="w-4 h-4 mr-2" />
+      {(canGenerateAiItinerary || canBookOwnTrip) && (
+        <div className="flex flex-wrap gap-3">
+          {canGenerateAiItinerary && (
+            <Button
+              className="rounded-2xl font-black uppercase text-xs tracking-widest h-12"
+              onClick={() => aiMutation.mutate()}
+              disabled={aiMutation.isPending}
+            >
+              {aiMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-2" />
+              )}
+              Generate AI itinerary
+            </Button>
           )}
-          Generate AI itinerary
-        </Button>
-        <Button
-          variant="secondary"
-          className="rounded-2xl font-black uppercase text-xs tracking-widest h-12"
-          onClick={() => checkoutMutation.mutate()}
-          disabled={checkoutMutation.isPending}
-        >
-          {checkoutMutation.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-          ) : (
-            <CreditCard className="w-4 h-4 mr-2" />
+          {canBookOwnTrip && (
+            <Button
+              variant="secondary"
+              className="rounded-2xl font-black uppercase text-xs tracking-widest h-12"
+              onClick={() => checkoutMutation.mutate()}
+              disabled={checkoutMutation.isPending}
+            >
+              {checkoutMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <CreditCard className="w-4 h-4 mr-2" />
+              )}
+              Book with Stripe
+            </Button>
           )}
-          Book with Stripe
-        </Button>
-      </div>
+        </div>
+      )}
 
       {aiMutation.isError && (
         <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-sm">

@@ -368,16 +368,16 @@ export default function AdminActivitiesPage() {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight">Activities</h1>
-          <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Activities</h1>
+          <p className="text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-widest mt-1">
             CRUD by destination
           </p>
         </div>
         <Button
-          className="rounded-2xl font-black uppercase text-xs h-12"
+          className="rounded-xl md:rounded-2xl font-black uppercase text-xs h-12 md:h-14"
           onClick={() => {
             setForm({
               ...emptyForm,
@@ -391,7 +391,7 @@ export default function AdminActivitiesPage() {
         </Button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
         <Select
           value={destinationFilter || 'all'}
           onValueChange={(v) => {
@@ -399,7 +399,7 @@ export default function AdminActivitiesPage() {
             setPagination((p) => ({ ...p, pageIndex: 0 }));
           }}
         >
-          <SelectTrigger className="w-full lg:w-[280px] h-12 rounded-xl">
+          <SelectTrigger className="w-full sm:w-[240px] md:w-[280px] h-11 md:h-12 rounded-xl">
             <SelectValue placeholder="All destinations" />
           </SelectTrigger>
           <SelectContent className="rounded-xl max-h-72">
@@ -411,43 +411,47 @@ export default function AdminActivitiesPage() {
             ))}
           </SelectContent>
         </Select>
-        <Input
-          className="max-w-md h-12 rounded-xl"
-          placeholder="Search name, type, description…"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
+        <div className="relative flex-1 max-w-md">
+          <Input
+            className="w-full h-11 md:h-12 rounded-xl"
+            placeholder="Search name, type, description…"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="bg-card border border-border/50 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-6 overflow-hidden">
+        <ServerDataTable
+          data={items}
+          columns={columns}
+          pageCount={pageCount}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          sorting={sorting}
+          onSortingChange={(updater) => {
+            setSorting(updater);
             setPagination((p) => ({ ...p, pageIndex: 0 }));
           }}
+          isLoading={isLoading}
         />
       </div>
 
-      <ServerDataTable
-        data={items}
-        columns={columns}
-        pageCount={pageCount}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        sorting={sorting}
-        onSortingChange={(updater) => {
-          setSorting(updater);
-          setPagination((p) => ({ ...p, pageIndex: 0 }));
-        }}
-        isLoading={isLoading}
-      />
-
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="rounded-[2rem] max-w-lg">
+        <DialogContent className="rounded-3xl max-w-lg w-[95vw] overflow-y-auto max-h-[90dvh]">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase">New activity</DialogTitle>
+            <DialogTitle className="font-black uppercase text-xl">New activity</DialogTitle>
           </DialogHeader>
           {formBody}
           <Button
-            className="w-full rounded-xl font-black uppercase text-xs h-11"
+            className="w-full rounded-xl font-black uppercase text-xs h-12 mt-4"
             disabled={createMut.isPending || !form.destinationId || !form.name}
             onClick={() => createMut.mutate()}
           >
-            {createMut.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create'}
+            {createMut.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Activity'}
           </Button>
         </DialogContent>
       </Dialog>
@@ -461,17 +465,17 @@ export default function AdminActivitiesPage() {
           }
         }}
       >
-        <DialogContent className="rounded-[2rem] max-w-lg">
+        <DialogContent className="rounded-3xl max-w-lg w-[95vw] overflow-y-auto max-h-[90dvh]">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase">Edit activity</DialogTitle>
+            <DialogTitle className="font-black uppercase text-xl">Edit activity</DialogTitle>
           </DialogHeader>
           {formBody}
           <Button
-            className="w-full rounded-xl font-black uppercase text-xs h-11"
+            className="w-full rounded-xl font-black uppercase text-xs h-12 mt-4"
             disabled={updateMut.isPending}
             onClick={() => updateMut.mutate()}
           >
-            {updateMut.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save'}
+            {updateMut.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
           </Button>
         </DialogContent>
       </Dialog>

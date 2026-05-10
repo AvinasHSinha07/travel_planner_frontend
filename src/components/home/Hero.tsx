@@ -28,7 +28,7 @@ const Hero = () => {
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary">Get the best travel deals first</span>
               </div>
               
-              <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-foreground leading-[0.9] mb-10">
+              <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter text-foreground leading-[0.9] mb-8 md:mb-10">
                 READY FOR YOUR <br />
                 <span className="text-primary italic font-serif">Next</span> <br />
                 ADVENTURE?

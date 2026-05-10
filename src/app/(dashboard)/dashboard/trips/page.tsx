@@ -99,14 +99,14 @@ const MyTripsPage = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground uppercase mb-2">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground uppercase mb-1 md:mb-2">
             My Itineraries
           </h1>
-          <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-xs">
+          <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px] md:text-xs">
             Manage Your Travel Plans
           </p>
         </div>
@@ -115,7 +115,7 @@ const MyTripsPage = () => {
 
       {/* Trips Grid */}
       {trips && trips.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {trips.map((trip, index) => (
             <motion.div
               key={trip.id}

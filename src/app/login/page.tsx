@@ -96,28 +96,29 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-stretch overflow-hidden bg-background">
       {/* Form Section */}
-      <div className="flex-1 flex flex-col justify-center px-8 md:px-20 lg:px-32 relative z-10 bg-background">
-        <Link href="/" className="absolute top-10 left-8 md:left-20 flex items-center space-x-3 group">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-md">
-            <Globe className="text-primary-foreground w-6 h-6" />
-          </div>
-          <span className="text-2xl font-black tracking-tighter text-foreground uppercase">
-            TRIPLANNER<span className="text-[#edae49]">AI</span>
-          </span>
-        </Link>
-
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-32 relative z-10 bg-background overflow-y-auto py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-md w-full mx-auto"
         >
-          <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-3 text-foreground">Welcome Back</h1>
-          <p className="text-lg text-muted-foreground mb-10 font-medium">
+          {/* Logo - Moved inside for better flow on mobile */}
+          <Link href="/" className="flex items-center space-x-3 group mb-12 lg:mb-16">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-md">
+              <Globe className="text-primary-foreground w-6 h-6" />
+            </div>
+            <span className="text-2xl font-black tracking-tighter text-foreground uppercase">
+              TRIPLANNER<span className="text-[#edae49]">AI</span>
+            </span>
+          </Link>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-3 text-foreground">Welcome Back</h1>
+          <p className="text-base sm:text-lg text-muted-foreground mb-8 md:mb-10 font-medium">
             Sign in to continue your journey with <span className="text-primary font-bold">TRIPLANNERAI</span>
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-[0.2em] flex items-center space-x-2 text-foreground/60 ml-1">
                 <Mail className="w-4 h-4 text-primary" />
@@ -128,7 +129,7 @@ const LoginPage = () => {
                 placeholder="alex@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-lg font-medium"
+                className="h-12 sm:h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-base sm:text-lg font-medium"
                 required
               />
             </div>
@@ -139,7 +140,7 @@ const LoginPage = () => {
                   <Lock className="w-4 h-4 text-primary" />
                   <span>Password</span>
                 </label>
-                <Link href="#" className="text-xs font-black uppercase tracking-widest text-primary hover:text-[#edae49] transition-colors">
+                <Link href="#" className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-primary hover:text-[#edae49] transition-colors">
                   Recovery?
                 </Link>
               </div>
@@ -148,7 +149,7 @@ const LoginPage = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-lg font-medium"
+                className="h-12 sm:h-14 rounded-2xl bg-secondary/5 border-border focus-visible:ring-primary text-base sm:text-lg font-medium"
                 required
               />
             </div>
@@ -156,31 +157,31 @@ const LoginPage = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-16 rounded-2xl text-lg font-black bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+              className="w-full h-14 sm:h-16 rounded-2xl text-base sm:text-lg font-black bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
             >
               {isLoading ? 'ESTABLISHING CONNECTION...' : 'SIGN IN'}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
 
             {demoEmail && demoPassword ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   disabled={isLoading}
                   onClick={handleDemoFill}
-                  className="h-12 rounded-2xl text-xs font-black uppercase tracking-widest border-border/60"
+                  className="flex-1 h-11 sm:h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest border-border/60"
                 >
-                  Fill demo credentials
+                  Fill credentials
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
                   disabled={isLoading}
                   onClick={handleDemoLogin}
-                  className="h-12 rounded-2xl text-xs font-black uppercase tracking-widest"
+                  className="flex-1 h-11 sm:h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest"
                 >
-                  Demo login (one tap)
+                  Instant Demo
                 </Button>
               </div>
             ) : null}
@@ -190,7 +191,7 @@ const LoginPage = () => {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border/60"></div>
             </div>
-            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-[0.3em]">
+            <div className="relative flex justify-center text-[9px] sm:text-[10px] uppercase font-black tracking-[0.3em]">
               <span className="bg-background px-4 text-muted-foreground/60">
                 Secure Social Auth
               </span>
@@ -201,7 +202,7 @@ const LoginPage = () => {
             <Button 
               onClick={handleGoogleLogin}
               variant="outline" 
-              className="h-14 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-3 border-border/60 hover:bg-secondary/5 hover:border-primary/30 transition-all"
+              className="h-12 sm:h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs flex items-center justify-center space-x-3 border-border/60 hover:bg-secondary/5 hover:border-primary/30 transition-all"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -213,7 +214,7 @@ const LoginPage = () => {
             </Button>
           </div>
 
-          <p className="mt-10 text-center text-sm font-medium text-muted-foreground">
+          <p className="mt-8 md:mt-10 text-center text-sm font-medium text-muted-foreground">
             Don't have an account?{' '}
             <Link href="/register" className="text-primary font-black hover:text-[#edae49] transition-colors">
               Sign up for free

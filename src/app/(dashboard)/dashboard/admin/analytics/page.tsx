@@ -106,15 +106,15 @@ export default function AdminAnalyticsPage() {
   }));
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 md:space-y-10">
       <div>
-        <h1 className="text-3xl font-black uppercase tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">
+        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Analytics</h1>
+        <p className="text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-widest mt-1">
           Live aggregates from the database
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           ['Users', platform.summary.totalUsers],
           ['Destinations', platform.summary.totalDestinations],
@@ -125,22 +125,22 @@ export default function AdminAnalyticsPage() {
           ['Activities', platform.summary.totalActivities],
           ['Stays', platform.summary.totalAccommodations],
         ].map(([label, val]) => (
-          <div key={String(label)} className="rounded-2xl border border-border/50 bg-card p-5">
-            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{label}</p>
-            <p className="text-2xl font-black mt-1">{val}</p>
+          <div key={String(label)} className="rounded-xl md:rounded-2xl border border-border/50 bg-card p-4 md:p-5">
+            <p className="text-[9px] md:text-[10px] font-black uppercase text-muted-foreground tracking-widest">{label}</p>
+            <p className="text-lg md:text-2xl font-black mt-1">{val}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-card border border-border/50 p-8 rounded-[2.5rem]">
-          <h3 className="text-lg font-black uppercase tracking-widest mb-8">Monthly signups & bookings</h3>
-          <div className="h-80">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <div className="bg-card border border-border/50 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem]">
+          <h3 className="text-base md:text-lg font-black uppercase tracking-widest mb-6 md:mb-8">Monthly signups & bookings</h3>
+          <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888820" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#001b2b',
@@ -156,9 +156,9 @@ export default function AdminAnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-card border border-border/50 p-8 rounded-[2.5rem]">
-          <h3 className="text-lg font-black uppercase tracking-widest mb-8">Bookings by type</h3>
-          <div className="h-80">
+        <div className="bg-card border border-border/50 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem]">
+          <h3 className="text-base md:text-lg font-black uppercase tracking-widest mb-6 md:mb-8">Bookings by type</h3>
+          <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -188,14 +188,14 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      <div className="bg-card border border-border/50 p-8 rounded-[2.5rem]">
-        <h3 className="text-lg font-black uppercase tracking-widest mb-8">Confirmed revenue by month</h3>
-        <div className="h-80">
+      <div className="bg-card border border-border/50 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem]">
+        <h3 className="text-base md:text-lg font-black uppercase tracking-widest mb-6 md:mb-8">Confirmed revenue by month</h3>
+        <div className="h-64 md:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={lineData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888820" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9 }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#001b2b',
@@ -210,20 +210,20 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      <section className="rounded-[2.5rem] border border-border/50 bg-card p-8 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <section className="rounded-[2rem] md:rounded-[2.5rem] border border-border/50 bg-card p-6 md:p-8 space-y-6">
+        <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
           <div>
-            <h2 className="text-xl font-black uppercase tracking-widest flex items-center gap-2">
+            <h2 className="text-lg md:text-xl font-black uppercase tracking-widest flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
               AI insights
             </h2>
-            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">
+            <p className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">
               Gemini analysis over live Prisma aggregates (cached 1h on the server)
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Select value={dataset} onValueChange={(v) => setDataset(v as DatasetKey)}>
-              <SelectTrigger className="w-[260px] rounded-xl h-11">
+              <SelectTrigger className="w-full sm:w-[260px] rounded-xl h-11 md:h-12">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -234,15 +234,16 @@ export default function AdminAnalyticsPage() {
               </SelectContent>
             </Select>
             <Button
-              className="rounded-xl font-black uppercase text-xs h-11"
+              className="rounded-xl font-black uppercase text-xs h-11 md:h-12 px-8"
               disabled={insightsMutation.isPending}
               onClick={() => insightsMutation.mutate(dataset)}
             >
               {insightsMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
               ) : (
-                'Generate insights'
+                <Sparkles className="w-4 h-4 mr-2" />
               )}
+              {insightsMutation.isPending ? 'Analyzing...' : 'Generate insights'}
             </Button>
           </div>
         </div>

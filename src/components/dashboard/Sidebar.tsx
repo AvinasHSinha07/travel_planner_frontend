@@ -50,7 +50,12 @@ const sidebarLinks = [
   { href: '/dashboard/admin/analytics', label: 'Analytics', icon: BarChart3, roles: ['ADMIN', 'TRAVEL_AGENT'] },
 ];
 
-const Sidebar = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -82,7 +87,10 @@ const Sidebar = () => {
 
   if (isPending) {
     return (
-      <aside className="fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50">
+      <aside className={cn(
+        "fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50 transition-transform duration-500",
+        !isOpen && "-translate-x-full lg:translate-x-0"
+      )}>
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse text-white/50 text-sm font-bold uppercase tracking-widest">
             Loading...
@@ -93,9 +101,12 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50">
+    <aside className={cn(
+      "fixed left-0 top-0 h-full w-80 bg-[#001b2b] border-r border-white/5 flex flex-col z-50 transition-transform duration-500",
+      !isOpen && "-translate-x-full lg:translate-x-0"
+    )}>
       {/* Brand */}
-      <div className="p-8">
+      <div className="p-8 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="w-10 h-10 bg-[#edae49] rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300">
             <Globe className="text-[#003d5b] w-6 h-6" />
@@ -104,6 +115,14 @@ const Sidebar = () => {
             TRIPLANNER<span className="text-[#edae49]">AI</span>
           </span>
         </Link>
+
+        {/* Mobile Close Button */}
+        <button 
+          onClick={onClose}
+          className="lg:hidden w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+        >
+          <ChevronRight className="w-6 h-6 rotate-180" />
+        </button>
       </div>
 
       {/* User Role Badge */}

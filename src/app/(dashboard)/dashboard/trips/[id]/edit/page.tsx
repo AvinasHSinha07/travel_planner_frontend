@@ -24,6 +24,7 @@ const STATUSES = ['DRAFT', 'PLANNED', 'BOOKED', 'COMPLETED', 'CANCELLED'] as con
 
 type TripDetail = {
   id: string;
+  userId: string;
   title: string;
   status: string;
   startDate: string;
@@ -39,6 +40,7 @@ export default function EditTripPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
+  const sessionRole = (session?.user as { role?: string })?.role ?? 'USER';
 
   const [title, setTitle] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -121,6 +123,25 @@ export default function EditTripPage() {
             Back to trips
           </Button>
         </Link>
+      </div>
+    );
+  }
+
+  const canEdit =
+    trip.userId === session?.user?.id || sessionRole === 'ADMIN';
+
+  if (!canEdit) {
+    return (
+      <div className="max-w-lg space-y-6">
+        <Link href={`/dashboard/trips/${id}`}>
+          <Button variant="ghost" className="rounded-xl gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to trip
+          </Button>
+        </Link>
+        <p className="text-muted-foreground">
+          Only the traveler who owns this trip or an administrator can edit it. Travel agents can view trips in read-only mode.
+        </p>
       </div>
     );
   }

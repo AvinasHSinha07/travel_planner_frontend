@@ -34,6 +34,11 @@ interface Booking {
   stripeSessionId?: string;
 }
 
+type StaffBookingResponse = {
+  items: Booking[];
+  meta?: { page: number; limit: number; total: number; totalPages: number };
+};
+
 const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
   PENDING: { 
     color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20', 
@@ -67,10 +72,12 @@ const MyBookingsPage = () => {
     queryKey: ['my-bookings', session?.user?.id],
     queryFn: async () => {
       const response = await axiosInstance.get('/booking');
-      return response.data.data as Booking[];
+      return response.data.data as Booking[] | StaffBookingResponse;
     },
     enabled: !!session?.user?.id,
   });
+
+  const bookingItems = Array.isArray(bookings) ? bookings : bookings?.items ?? [];
 
   if (isLoading) {
     return (
@@ -95,10 +102,15 @@ const MyBookingsPage = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Bookings', value: bookings?.length || 0 },
-          { label: 'Confirmed', value: bookings?.filter(b => b.status === 'CONFIRMED').length || 0 },
-          { label: 'Pending', value: bookings?.filter(b => b.status === 'PENDING').length || 0 },
-          { label: 'Total Spent', value: `$${bookings?.reduce((sum, b) => sum + (b.status === 'CONFIRMED' ? b.totalAmount : 0), 0).toLocaleString() || 0}` },
+          { label: 'Total Bookings', value: bookingItems.length },
+          { label: 'Confirmed', value: bookingItems.filter((b) => b.status === 'CONFIRMED').length },
+          { label: 'Pending', value: bookingItems.filter((b) => b.status === 'PENDING').length },
+          {
+            label: 'Total Spent',
+            value: `$${bookingItems
+              .reduce((sum, b) => sum + (b.status === 'CONFIRMED' ? b.totalAmount : 0), 0)
+              .toLocaleString()}`,
+          },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -116,9 +128,9 @@ const MyBookingsPage = () => {
       </div>
 
       {/* Bookings List */}
-      {bookings && bookings.length > 0 ? (
+      {bookingItems.length > 0 ? (
         <div className="space-y-4">
-          {bookings.map((booking, index) => (
+          {bookingItems.map((booking, index) => (
             <motion.div
               key={booking.id}
               initial={{ opacity: 0, x: -20 }}

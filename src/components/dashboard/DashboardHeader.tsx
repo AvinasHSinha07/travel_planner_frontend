@@ -8,7 +8,8 @@ import {
   LogOut, 
   Settings,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Menu
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,7 +35,11 @@ type SessionUser = {
   avatar?: string | null;
 };
 
-const DashboardHeader = () => {
+interface DashboardHeaderProps {
+  onMenuClick?: () => void;
+}
+
+const DashboardHeader = ({ onMenuClick }: DashboardHeaderProps) => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = session?.user as SessionUser | undefined;
@@ -50,14 +55,24 @@ const DashboardHeader = () => {
   };
 
   return (
-    <header className="h-24 bg-background border-b border-border/50 sticky top-0 z-40 px-10 flex items-center justify-between">
-      {/* Quick Search */}
-      <div className="relative w-96 group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-        <Input 
-          placeholder="Command Search..." 
-          className="h-12 pl-12 rounded-xl bg-secondary/5 border-border/60 focus-visible:ring-primary font-medium"
-        />
+    <header className="h-24 bg-background border-b border-border/50 sticky top-0 z-40 px-4 md:px-10 flex items-center justify-between">
+      <div className="flex items-center space-x-4">
+        {/* Mobile Toggle */}
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-foreground hover:bg-secondary/20 transition-all"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+
+        {/* Quick Search - Hidden on Small Screens */}
+        <div className="relative w-64 xl:w-96 group hidden md:block">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input 
+            placeholder="Command Search..." 
+            className="h-12 pl-12 rounded-xl bg-secondary/5 border-border/60 focus-visible:ring-primary font-medium"
+          />
+        </div>
       </div>
 
       {/* Right Actions */}

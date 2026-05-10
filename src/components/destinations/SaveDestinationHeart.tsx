@@ -42,20 +42,18 @@ export function SaveDestinationHeart({
   const isSaved = savedIds.includes(destinationId);
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      const ids = queryClient.getQueryData<string[]>(SAVED_IDS_KEY) ?? [];
-      const currentlySaved = ids.includes(destinationId);
+    mutationFn: async (currentlySaved: boolean) => {
       if (currentlySaved) {
         await axiosInstance.delete(`/saved-destinations/${destinationId}`);
       } else {
         await axiosInstance.post('/saved-destinations', { destinationId });
       }
     },
-    onMutate: async () => {
+    onMutate: async (currentlySaved) => {
       await queryClient.cancelQueries({ queryKey: SAVED_IDS_KEY });
       const previousIds = queryClient.getQueryData<string[]>(SAVED_IDS_KEY);
       const list = previousIds ?? [];
-      const wasSaved = list.includes(destinationId);
+      const wasSaved = currentlySaved;
       const next = wasSaved ? list.filter((id) => id !== destinationId) : [...list, destinationId];
       queryClient.setQueryData(SAVED_IDS_KEY, next);
 
@@ -116,7 +114,7 @@ export function SaveDestinationHeart({
       });
       return;
     }
-    mutation.mutate();
+    mutation.mutate(isSaved);
   };
 
   const showLoading = !!userId && (idsLoading || mutation.isPending);
