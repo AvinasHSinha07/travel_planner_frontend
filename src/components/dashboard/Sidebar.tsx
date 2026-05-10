@@ -31,23 +31,95 @@ import { useRouter } from 'next/navigation';
 
 // Define all sidebar links with role requirements
 const sidebarLinks = [
-  // User links
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/trips', label: 'My Trips', icon: Map, roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/bookings', label: 'My Bookings', icon: Calendar, roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/saved-destinations', label: 'Saved', icon: Heart, roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'] },
+  // User Console
+  { 
+    href: '/dashboard', 
+    label: 'Overview', 
+    icon: LayoutDashboard, 
+    roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'],
+    section: 'MAIN'
+  },
+  { 
+    href: '/dashboard/trips', 
+    label: 'My Trips', 
+    icon: Map, 
+    roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'],
+    section: 'MAIN'
+  },
+  { 
+    href: '/dashboard/bookings', 
+    label: 'My Bookings', 
+    icon: Calendar, 
+    roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'],
+    section: 'MAIN'
+  },
+  { 
+    href: '/dashboard/saved-destinations', 
+    label: 'Saved', 
+    icon: Heart, 
+    roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'],
+    section: 'MAIN'
+  },
+  { 
+    href: '/dashboard/settings', 
+    label: 'Settings', 
+    icon: Settings, 
+    roles: ['USER', 'ADMIN', 'TRAVEL_AGENT'],
+    section: 'MAIN'
+  },
   
-  // Admin & Travel Agent links
-  { href: '/dashboard/admin', label: 'Admin Dashboard', icon: Sparkles, roles: ['ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['ADMIN'] },
-  { href: '/dashboard/admin/destinations', label: 'Destinations', icon: Globe, roles: ['ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/admin/activities', label: 'Activities', icon: Mountain, roles: ['ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/admin/accommodations', label: 'Accommodations', icon: Hotel, roles: ['ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/admin/bookings', label: 'All Bookings', icon: Calendar, roles: ['ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/admin/reviews', label: 'Reviews', icon: MessageSquare, roles: ['ADMIN', 'TRAVEL_AGENT'] },
-  { href: '/dashboard/admin/analytics', label: 'Analytics', icon: BarChart3, roles: ['ADMIN', 'TRAVEL_AGENT'] },
+  // Inventory (Agent & Admin)
+  { 
+    href: '/dashboard/admin/destinations', 
+    label: 'Destinations', 
+    icon: Globe, 
+    roles: ['ADMIN', 'TRAVEL_AGENT'],
+    section: 'INVENTORY'
+  },
+  { 
+    href: '/dashboard/admin/activities', 
+    label: 'Activities', 
+    icon: Mountain, 
+    roles: ['ADMIN', 'TRAVEL_AGENT'],
+    section: 'INVENTORY'
+  },
+  { 
+    href: '/dashboard/admin/accommodations', 
+    label: 'Accommodations', 
+    icon: Hotel, 
+    roles: ['ADMIN', 'TRAVEL_AGENT'],
+    section: 'INVENTORY'
+  },
+  { 
+    href: '/dashboard/admin/bookings', 
+    label: 'Reservations', 
+    icon: Briefcase, 
+    roles: ['ADMIN', 'TRAVEL_AGENT'],
+    section: 'INVENTORY'
+  },
+  { 
+    href: '/dashboard/admin/reviews', 
+    label: 'Reviews', 
+    icon: MessageSquare, 
+    roles: ['ADMIN', 'TRAVEL_AGENT'],
+    section: 'INVENTORY'
+  },
+
+  { 
+    href: '/dashboard/admin/analytics', 
+    label: 'Analytics', 
+    icon: BarChart3, 
+    roles: ['ADMIN', 'TRAVEL_AGENT'],
+    section: 'INVENTORY'
+  },
+  // Admin Only
+  { 
+    href: '/dashboard/admin/users', 
+    label: 'Manage Users', 
+    icon: Users, 
+    roles: ['ADMIN'],
+    section: 'ADMIN'
+  },
 ];
 
 interface SidebarProps {
@@ -80,10 +152,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   };
 
   // Group links by section
-  const mainLinks = filteredLinks.filter(l => 
-    ['/dashboard', '/dashboard/trips', '/dashboard/bookings', '/dashboard/saved-destinations', '/dashboard/notifications', '/dashboard/settings'].includes(l.href)
-  );
-  const adminLinks = filteredLinks.filter(l => l.href.startsWith('/dashboard/admin'));
+  const mainLinks = filteredLinks.filter(l => (l as any).section === 'MAIN');
+  const inventoryLinks = filteredLinks.filter(l => (l as any).section === 'INVENTORY');
+  const adminLinks = filteredLinks.filter(l => (l as any).section === 'ADMIN');
 
   if (isPending) {
     return (
@@ -171,10 +242,43 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </div>
         </div>
 
-        {/* Admin Section */}
+        {/* Inventory Management */}
+        {inventoryLinks.length > 0 && (
+          <div>
+            <p className="px-4 text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-6">
+              {userRole === 'ADMIN' ? 'Inventory Control' : 'Agency Tools'}
+            </p>
+            <div className="space-y-1">
+              {inventoryLinks.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center justify-between px-4 py-4 rounded-2xl transition-all group",
+                      isActive 
+                        ? "bg-[#edae49] text-[#003d5b] shadow-lg shadow-[#edae49]/10" 
+                        : "text-white/50 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon className={cn("w-5 h-5", isActive ? "text-[#003d5b]" : "text-white/40 group-hover:text-white")} />
+                      <span className="text-sm font-bold uppercase tracking-widest">{item.label}</span>
+                    </div>
+                    <ChevronRight className={cn("w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity", isActive ? "hidden" : "block")} />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Platform Administration */}
         {adminLinks.length > 0 && (
           <div>
-            <p className="px-4 text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-6">Administration</p>
+            <p className="px-4 text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-6">Platform Admin</p>
             <div className="space-y-1">
               {adminLinks.map((item) => {
                 const isActive = pathname === item.href;

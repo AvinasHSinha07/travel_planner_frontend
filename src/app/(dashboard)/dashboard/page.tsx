@@ -34,6 +34,10 @@ type AnalyticsResponse =
       monthlySeries: { month: string; bookings: number; revenue: number; newUsers: number }[];
     }
   | {
+      scope: 'agent';
+      monthlySeries: { month: string; bookings: number; revenue: number; newUsers: number }[];
+    }
+  | {
       scope: 'user';
       monthlySeries: { month: string; bookings: number; revenue: number; trips: number }[];
     };
@@ -64,7 +68,7 @@ const DashboardOverview = () => {
 
   const chartData = useMemo(() => {
     if (!analytics) return [];
-    if (analytics.scope === 'platform') {
+    if (analytics.scope === 'platform' || analytics.scope === 'agent') {
       return analytics.monthlySeries.map((m) => ({
         name: m.month,
         count: m.bookings,
@@ -84,7 +88,7 @@ const DashboardOverview = () => {
     );
   }
 
-  const statConfig = staff
+  const statConfig = userRole === 'ADMIN'
     ? [
         { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, trend: '+5%', up: true },
         { label: 'Destinations', value: stats?.totalDestinations || 0, icon: Compass, trend: '+2', up: true },
@@ -94,6 +98,19 @@ const DashboardOverview = () => {
           value: `$${(stats?.totalRevenue || 0).toLocaleString()}`,
           icon: CreditCard,
           trend: '+8%',
+          up: true,
+        },
+      ]
+    : userRole === 'TRAVEL_AGENT'
+    ? [
+        { label: 'My Destinations', value: stats?.totalDestinations || 0, icon: Compass, trend: 'Agency', up: true },
+        { label: 'My Activities', value: stats?.totalActivities || 0, icon: Compass, trend: 'Inventory', up: true },
+        { label: 'My Bookings', value: stats?.totalBookings || 0, icon: Calendar, trend: 'Sales', up: true },
+        {
+          label: 'My Revenue',
+          value: `$${(stats?.totalRevenue || 0).toLocaleString()}`,
+          icon: CreditCard,
+          trend: 'USD',
           up: true,
         },
       ]

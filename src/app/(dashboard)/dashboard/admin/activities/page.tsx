@@ -103,18 +103,19 @@ export default function AdminActivitiesPage() {
           limit: pagination.pageSize,
           sortBy: sortId,
           sortOrder: sortDesc ? 'desc' : 'asc',
+          isManagement: 'true',
         },
       });
-      return res.data.data as {
-        items: ActivityRow[];
-        meta: { total: number; totalPages: number };
+      return res.data as {
+        data: ActivityRow[];
+        meta: { total: number; totalPage: number };
       };
     },
     enabled: canAccess,
   });
 
-  const items = listResult?.items ?? [];
-  const pageCount = listResult?.meta.totalPages ?? 1;
+  const items = listResult?.data ?? [];
+  const pageCount = listResult?.meta?.totalPage ?? 1;
 
   const createMut = useMutation({
     mutationFn: async () => {

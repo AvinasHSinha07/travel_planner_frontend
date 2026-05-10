@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDebounce } from 'use-debounce';
 import { motion } from 'framer-motion';
 import { 
   CreditCard, 
@@ -70,8 +71,10 @@ const AdminBookingsPage = () => {
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch] = useDebounce(searchTerm, 500);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
+  const [page, setPage] = useState(1);
 
   const patchStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -84,30 +87,27 @@ const AdminBookingsPage = () => {
     onError: () => toast.error('Could not update status'),
   });
 
-  const { data: bookings, isLoading } = useQuery({
-    queryKey: ['admin-bookings', statusFilter, typeFilter],
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['admin-bookings', statusFilter, typeFilter, debouncedSearch, page],
     queryFn: async () => {
-      const response = await axiosInstance.get('/booking', {
+      const res = await axiosInstance.get('/booking', {
         params: { 
           status: statusFilter !== 'ALL' ? statusFilter : undefined,
           type: typeFilter !== 'ALL' ? typeFilter : undefined,
+          searchTerm: debouncedSearch || undefined,
+          page,
+          limit: 15
         },
       });
-      const payload = response.data.data;
-      if (Array.isArray(payload)) return payload as Booking[];
-      return (payload?.items ?? []) as Booking[];
+      return res.data;
     },
     enabled: (session?.user as any)?.role === 'ADMIN' || (session?.user as any)?.role === 'TRAVEL_AGENT',
   });
 
-  const filteredBookings = bookings?.filter(booking => 
-    searchTerm === '' || 
-    booking.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    booking.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    booking.trip?.destination?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const bookings = (response?.data ?? []) as Booking[];
+  const meta = response?.meta;
 
-  const totalRevenue = filteredBookings?.reduce((sum, b) => 
+  const totalRevenue = bookings?.reduce((sum, b) => 
     sum + (b.status === 'CONFIRMED' ? b.totalAmount : 0), 0
   ) || 0;
 
@@ -144,12 +144,18 @@ const AdminBookingsPage = () => {
           <Input
             placeholder="Search by user or destination..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             className="h-14 pl-12 rounded-xl border-border/60"
           />
         </div>
         
-        <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || 'ALL')}>
+        <Select value={statusFilter} onValueChange={(val) => {
+          setStatusFilter(val || 'ALL');
+          setPage(1);
+        }}>
           <SelectTrigger className="w-[180px] h-14 rounded-xl">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
@@ -162,7 +168,10 @@ const AdminBookingsPage = () => {
           </SelectContent>
         </Select>
 
-        <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val || 'ALL')}>
+        <Select value={typeFilter} onValueChange={(val) => {
+          setTypeFilter(val || 'ALL');
+          setPage(1);
+        }}>
           <SelectTrigger className="w-[180px] h-14 rounded-xl">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
@@ -206,7 +215,7 @@ const AdminBookingsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
-              {filteredBookings?.map((booking, index) => (
+              {bookings.map((booking, index) => (
                 <motion.tr
                   key={booking.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -288,7 +297,7 @@ const AdminBookingsPage = () => {
           </table>
         </div>
 
-        {filteredBookings?.length === 0 && (
+        {bookings.length === 0 && (
           <div className="text-center py-20">
             <CreditCard className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
             <h3 className="text-xl font-black mb-2">No bookings found</h3>
@@ -296,6 +305,43 @@ const AdminBookingsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && meta && meta.totalPage > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="rounded-xl px-4"
+          >
+            Previous
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: meta.totalPage }, (_, i) => i + 1).map((p) => (
+              <Button
+                key={p}
+                variant={page === p ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setPage(p)}
+                className="w-10 h-10 rounded-xl font-black"
+              >
+                {p}
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.min(meta.totalPage, p + 1))}
+            disabled={page === meta.totalPage}
+            className="rounded-xl px-4"
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

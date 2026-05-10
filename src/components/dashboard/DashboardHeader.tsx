@@ -87,7 +87,7 @@ const DashboardHeader = ({ onMenuClick }: DashboardHeaderProps) => {
         <div className="hidden md:flex items-center space-x-3 px-5 py-2.5 bg-primary/5 border border-primary/20 rounded-xl">
            <Sparkles className="w-4 h-4 text-primary" />
            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-            {user?.role === 'ADMIN' ? 'System Root' : 'Elite Access'}
+            {user?.role === 'ADMIN' ? 'System Root' : user?.role === 'TRAVEL_AGENT' ? 'Agent Console' : 'Traveler Access'}
            </span>
         </div>
 

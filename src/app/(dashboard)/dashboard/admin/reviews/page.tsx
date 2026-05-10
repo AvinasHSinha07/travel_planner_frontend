@@ -35,9 +35,9 @@ export default function AdminReviewsPage() {
       const res = await axiosInstance.get('/review/admin/all', {
         params: { page, limit: 20, search: searchTerm || undefined },
       });
-      return res.data.data as {
-        items: AdminReview[];
-        meta: { total: number; page: number; limit: number; totalPages: number };
+      return res.data as {
+        data: AdminReview[];
+        meta: { total: number; page: number; limit: number; totalPage: number };
       };
     },
     enabled: staff,
@@ -70,7 +70,7 @@ export default function AdminReviewsPage() {
     );
   }
 
-  const items = data?.items ?? [];
+  const items = data?.data ?? [];
 
   return (
     <div className="space-y-8">
@@ -179,17 +179,17 @@ export default function AdminReviewsPage() {
         )}
       </div>
 
-      {data && data.meta.totalPages > 1 && (
+      {data && data.meta.totalPage > 1 && (
         <div className="flex justify-center gap-3">
           <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
             Previous
           </Button>
           <span className="self-center text-sm text-muted-foreground">
-            Page {data.meta.page} / {data.meta.totalPages}
+            Page {data?.meta?.page} / {data?.meta?.totalPage}
           </span>
           <Button
             variant="outline"
-            disabled={page >= data.meta.totalPages}
+            disabled={page >= data.meta.totalPage}
             onClick={() => setPage((p) => p + 1)}
           >
             Next

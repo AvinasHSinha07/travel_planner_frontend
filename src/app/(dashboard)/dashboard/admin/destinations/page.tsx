@@ -34,6 +34,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useDebounce } from 'use-debounce';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
@@ -74,7 +82,13 @@ const DestinationsManagementPage = () => {
   const role = (session?.user as { role?: string })?.role;
   const canDeleteDestination = role === 'ADMIN';
   const queryClient = useQueryClient();
+  
+  // Search, Filter & Pagination state
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch] = useDebounce(searchTerm, 500);
+  const [category, setCategory] = useState('ALL');
+  const [page, setPage] = useState(1);
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [aiCategorizing, setAiCategorizing] = useState(false);
@@ -93,16 +107,25 @@ const DestinationsManagementPage = () => {
   });
   const [editForm, setEditForm] = useState<EditDestinationForm | null>(null);
 
-  const { data: destinations, isLoading } = useQuery({
-    queryKey: ['admin-destinations', searchTerm],
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['admin-destinations', debouncedSearch, category, page],
     queryFn: async () => {
-      const response = await axiosInstance.get('/destination', {
-        params: { searchTerm },
+      const res = await axiosInstance.get('/destination', {
+        params: { 
+          searchTerm: debouncedSearch || undefined,
+          category: category === 'ALL' ? undefined : category,
+          page,
+          limit: 12,
+          isManagement: 'true'
+        },
       });
-      return response.data.data as Destination[];
+      return res.data;
     },
     enabled: role === 'ADMIN' || role === 'TRAVEL_AGENT',
   });
+
+  const destinations = (response?.data ?? []) as Destination[];
+  const meta = response?.meta;
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof newDestination) => {
@@ -282,12 +305,31 @@ const DestinationsManagementPage = () => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Select value={category} onValueChange={(val) => {
+            setCategory(val || 'ALL');
+            setPage(1);
+          }}>
+            <SelectTrigger className="w-full sm:w-[180px] h-12 md:h-14 rounded-xl">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="ALL">All Categories</SelectItem>
+              <SelectItem value="Beach">Beach</SelectItem>
+              <SelectItem value="City">City</SelectItem>
+              <SelectItem value="Mountain">Mountain</SelectItem>
+              <SelectItem value="Cultural">Cultural</SelectItem>
+              <SelectItem value="Nature">Nature</SelectItem>
+            </SelectContent>
+          </Select>
           <div className="relative flex-1 sm:w-80">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search destinations..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
               className="h-12 md:h-14 pl-10 md:pl-12 rounded-xl border-border/60"
             />
           </div>
@@ -366,6 +408,51 @@ const DestinationsManagementPage = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && meta && meta.totalPage > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-12">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="rounded-xl px-4"
+          >
+            Previous
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: meta.totalPage }, (_, i) => i + 1).map((p) => (
+              <Button
+                key={p}
+                variant={page === p ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setPage(p)}
+                className="w-10 h-10 rounded-xl font-black"
+              >
+                {p}
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.min(meta.totalPage, p + 1))}
+            disabled={page === meta.totalPage}
+            className="rounded-xl px-4"
+          >
+            Next
+          </Button>
+        </div>
+      )}
+
+      {destinations?.length === 0 && (
+        <div className="text-center py-20 bg-secondary/5 rounded-[3rem] border-2 border-dashed border-border">
+          <Map className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
+          <h3 className="text-2xl font-black mb-2">No destinations found</h3>
+          <p className="text-muted-foreground">Try adjusting your filters or search terms</p>
+        </div>
+      )}
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

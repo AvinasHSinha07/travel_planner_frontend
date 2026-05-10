@@ -72,9 +72,9 @@ const DestinationDetailsPage = () => {
       const res = await axiosInstance.get(`/review/${destId}`, {
         params: { page: reviewPage, limit: 8 },
       });
-      return res.data.data as {
-        items: ReviewRow[];
-        meta: { total: number; page: number; limit: number; totalPages: number };
+      return res.data as {
+        data: ReviewRow[];
+        meta: { total: number; page: number; limit: number; totalPage: number };
       };
     },
     enabled: !!destId,
@@ -367,8 +367,8 @@ const DestinationDetailsPage = () => {
         <div className="container mx-auto px-6 max-w-4xl">
           <h2 className="text-3xl font-black uppercase tracking-tight mb-2">Traveler reviews</h2>
           <p className="text-muted-foreground text-sm font-medium mb-10">
-            {reviewPayload?.meta.total ?? 0} reviews · Page {reviewPayload?.meta.page ?? 1} of{' '}
-            {reviewPayload?.meta.totalPages ?? 1}
+            {reviewPayload?.meta?.total ?? 0} reviews · Page {reviewPayload?.meta?.page ?? 1} of{' '}
+            {reviewPayload?.meta?.totalPage ?? 1}
           </p>
 
           {session?.user ? (
@@ -453,7 +453,7 @@ const DestinationDetailsPage = () => {
           )}
 
           <div className="space-y-6">
-            {(reviewPayload?.items ?? []).map((r) => (
+            {(reviewPayload?.data ?? []).map((r) => (
               <div
                 key={r.id}
                 className="rounded-[2rem] border border-border/50 bg-background p-6 shadow-sm"
@@ -487,12 +487,12 @@ const DestinationDetailsPage = () => {
                 </p>
               </div>
             ))}
-            {!reviewPayload?.items?.length && (
+            {!reviewPayload?.data?.length && (
               <p className="text-muted-foreground text-center py-8">No reviews yet — be the first.</p>
             )}
           </div>
 
-          {reviewPayload && reviewPayload.meta.totalPages > 1 && (
+          {reviewPayload && reviewPayload.meta.totalPage > 1 && (
             <div className="flex justify-center gap-3 mt-10">
               <Button
                 variant="outline"
@@ -505,7 +505,7 @@ const DestinationDetailsPage = () => {
               <Button
                 variant="outline"
                 className="rounded-xl"
-                disabled={reviewPage >= reviewPayload.meta.totalPages}
+                disabled={reviewPage >= (reviewPayload?.meta?.totalPage ?? 1)}
                 onClick={() => setReviewPage((p) => p + 1)}
               >
                 Next

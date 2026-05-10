@@ -96,16 +96,16 @@ const UsersManagementPage = () => {
           suspended: suspendedFilter,
         },
       });
-      return response.data.data as {
-        items: UserData[];
-        meta: { total: number; totalPages: number };
+      return response.data as {
+        data: UserData[];
+        meta: { total: number; totalPage: number };
       };
     },
     enabled: (session?.user as { role?: string })?.role === 'ADMIN',
   });
 
-  const users = listResult?.items ?? [];
-  const pageCount = listResult?.meta.totalPages ?? 1;
+  const users = listResult?.data ?? [];
+  const pageCount = listResult?.meta?.totalPage ?? 1;
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {

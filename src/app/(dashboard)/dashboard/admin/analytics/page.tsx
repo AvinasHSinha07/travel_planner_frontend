@@ -55,6 +55,19 @@ type PlatformAnalytics = {
   bookingsByType: { type: string; count: number }[];
 };
 
+type AgentAnalytics = {
+  scope: 'agent';
+  summary: {
+    totalDestinations: number;
+    totalActivities: number;
+    totalAccommodations: number;
+    totalBookings: number;
+    totalRevenue: number;
+  };
+  monthlySeries: { month: string; bookings: number; revenue: number; newUsers: number }[];
+  bookingsByType: { type: string; count: number }[];
+};
+
 export default function AdminAnalyticsPage() {
   const { data: session } = authClient.useSession();
   const role = (session?.user as { role?: string })?.role;
@@ -72,7 +85,7 @@ export default function AdminAnalyticsPage() {
     queryKey: ['analytics-dashboard'],
     queryFn: async () => {
       const res = await axiosInstance.get('/analytics/dashboard');
-      return res.data.data as PlatformAnalytics | { scope: string };
+      return res.data.data as PlatformAnalytics | AgentAnalytics;
     },
     enabled: canAccess,
   });
@@ -81,7 +94,7 @@ export default function AdminAnalyticsPage() {
     return <p className="text-center py-20 text-muted-foreground">Access denied.</p>;
   }
 
-  if (isLoading || !data || data.scope !== 'platform') {
+  if (isLoading || !data || (data.scope !== 'platform' && data.scope !== 'agent')) {
     return (
       <div className="flex justify-center h-96 items-center">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -89,42 +102,56 @@ export default function AdminAnalyticsPage() {
     );
   }
 
-  const platform = data as PlatformAnalytics;
-  const barData = platform.monthlySeries.map((m) => ({
+  const isPlatform = data.scope === 'platform';
+  const analytics = data;
+  
+  const barData = analytics.monthlySeries.map((m) => ({
     name: m.month,
     users: m.newUsers,
     bookings: m.bookings,
   }));
-  const lineData = platform.monthlySeries.map((m) => ({
+  const lineData = analytics.monthlySeries.map((m) => ({
     name: m.month,
     revenue: m.revenue,
   }));
-  const pieData = platform.bookingsByType.map((b, i) => ({
+  const pieData = analytics.bookingsByType.map((b, i) => ({
     name: b.type,
     value: b.count,
     color: PIE_COLORS[i % PIE_COLORS.length],
   }));
 
+  const stats = isPlatform 
+    ? [
+        ['Users', (analytics as PlatformAnalytics).summary.totalUsers],
+        ['Destinations', (analytics as PlatformAnalytics).summary.totalDestinations],
+        ['Bookings', (analytics as PlatformAnalytics).summary.totalBookings],
+        ['Revenue', `$${(analytics as PlatformAnalytics).summary.totalRevenue.toLocaleString()}`],
+        ['Trips', (analytics as PlatformAnalytics).summary.totalTrips],
+        ['Reviews', (analytics as PlatformAnalytics).summary.totalReviews],
+        ['Activities', (analytics as PlatformAnalytics).summary.totalActivities],
+        ['Stays', (analytics as PlatformAnalytics).summary.totalAccommodations],
+      ]
+    : [
+        ['My Destinations', (analytics as AgentAnalytics).summary.totalDestinations],
+        ['My Activities', (analytics as AgentAnalytics).summary.totalActivities],
+        ['My Stays', (analytics as AgentAnalytics).summary.totalAccommodations],
+        ['My Bookings', (analytics as AgentAnalytics).summary.totalBookings],
+        ['Total Revenue', `$${(analytics as AgentAnalytics).summary.totalRevenue.toLocaleString()}`],
+      ];
+
   return (
     <div className="space-y-6 md:space-y-10">
       <div>
-        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Analytics</h1>
+        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
+          {isPlatform ? 'Platform Analytics' : 'Agency Analytics'}
+        </h1>
         <p className="text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-widest mt-1">
-          Live aggregates from the database
+          {isPlatform ? 'Live aggregates from the database' : 'Business insights for your agency'}
         </p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-        {[
-          ['Users', platform.summary.totalUsers],
-          ['Destinations', platform.summary.totalDestinations],
-          ['Bookings', platform.summary.totalBookings],
-          ['Revenue', `$${platform.summary.totalRevenue.toLocaleString()}`],
-          ['Trips', platform.summary.totalTrips],
-          ['Reviews', platform.summary.totalReviews],
-          ['Activities', platform.summary.totalActivities],
-          ['Stays', platform.summary.totalAccommodations],
-        ].map(([label, val]) => (
+        {stats.map(([label, val]) => (
           <div key={String(label)} className="rounded-xl md:rounded-2xl border border-border/50 bg-card p-4 md:p-5">
             <p className="text-[9px] md:text-[10px] font-black uppercase text-muted-foreground tracking-widest">{label}</p>
             <p className="text-lg md:text-2xl font-black mt-1">{val}</p>

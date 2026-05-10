@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
@@ -11,10 +11,20 @@ import {
   Clock,
   XCircle,
   RefreshCw,
-  ArrowRight
+  ArrowRight,
+  Search
 } from 'lucide-react';
 import axiosInstance from '@/lib/axiosInstance';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useDebounce } from 'use-debounce';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { authClient } from '@/lib/auth-client';
 import { Badge } from '@/components/ui/badge';
 
@@ -36,7 +46,7 @@ interface Booking {
 
 type StaffBookingResponse = {
   items: Booking[];
-  meta?: { page: number; limit: number; total: number; totalPages: number };
+  meta?: { page: number; limit: number; total: number; totalPage: number };
 };
 
 const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
@@ -68,24 +78,32 @@ const typeLabels: Record<string, string> = {
 const MyBookingsPage = () => {
   const { data: session } = authClient.useSession();
 
-  const { data: bookings, isLoading } = useQuery({
-    queryKey: ['my-bookings', session?.user?.id],
+  // Filter & Pagination state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch] = useDebounce(searchTerm, 500);
+  const [status, setStatus] = useState<string>('ALL');
+  const [type, setType] = useState<string>('ALL');
+  const [page, setPage] = useState(1);
+
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['my-bookings', session?.user?.id, debouncedSearch, status, type, page],
     queryFn: async () => {
-      const response = await axiosInstance.get('/booking');
-      return response.data.data as Booking[] | StaffBookingResponse;
+      const res = await axiosInstance.get('/booking', {
+        params: {
+          searchTerm: debouncedSearch,
+          status: status === 'ALL' ? undefined : status,
+          type: type === 'ALL' ? undefined : type,
+          page,
+          limit: 10
+        }
+      });
+      return res.data;
     },
     enabled: !!session?.user?.id,
   });
 
-  const bookingItems = Array.isArray(bookings) ? bookings : bookings?.items ?? [];
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const bookingItems = response?.data as Booking[] || [];
+  const meta = response?.meta;
 
   return (
     <div className="space-y-8">
@@ -97,6 +115,56 @@ const MyBookingsPage = () => {
         <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-xs">
           Track Your Reservations & Payments
         </p>
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search bookings..." 
+            className="pl-10 h-12 rounded-xl"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div>
+          <Select value={status} onValueChange={(val) => {
+            setStatus(val);
+            setPage(1);
+          }}>
+            <SelectTrigger className="h-12 rounded-xl">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="ALL">All Status</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              <SelectItem value="REFUNDED">Refunded</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Select value={type} onValueChange={(val) => {
+            setType(val);
+            setPage(1);
+          }}>
+            <SelectTrigger className="h-12 rounded-xl">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="ALL">All Types</SelectItem>
+              <SelectItem value="FLIGHT">Flight</SelectItem>
+              <SelectItem value="HOTEL">Hotel</SelectItem>
+              <SelectItem value="ACTIVITY">Activity</SelectItem>
+              <SelectItem value="PACKAGE">Package</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Stats */}
@@ -128,9 +196,14 @@ const MyBookingsPage = () => {
       </div>
 
       {/* Bookings List */}
-      {bookingItems.length > 0 ? (
-        <div className="space-y-4">
-          {bookingItems.map((booking, index) => (
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        </div>
+      ) : bookingItems.length > 0 ? (
+        <>
+          <div className="space-y-4">
+            {bookingItems.map((booking, index) => (
             <motion.div
               key={booking.id}
               initial={{ opacity: 0, x: -20 }}
@@ -193,15 +266,64 @@ const MyBookingsPage = () => {
             </motion.div>
           ))}
         </div>
+        </>
       ) : (
         <div className="text-center py-20 bg-secondary/5 rounded-[3rem] border-2 border-dashed border-border">
           <CreditCard className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
-          <h3 className="text-2xl font-black mb-2">No bookings yet</h3>
+          <h3 className="text-2xl font-black mb-2">No bookings found</h3>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Your booking history will appear here once you make reservations
+            {searchTerm || status !== 'ALL' || type !== 'ALL' 
+              ? "Try adjusting your filters to find what you're looking for." 
+              : "Your booking history will appear here once you make reservations."}
           </p>
-          <Button className="h-16 px-8 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest">
-            Browse Destinations
+          <Button 
+            onClick={() => {
+              setSearchTerm('');
+              setStatus('ALL');
+              setType('ALL');
+              setPage(1);
+            }}
+            variant="outline" 
+            className="h-16 px-8 rounded-2xl font-black uppercase text-xs tracking-widest"
+          >
+            Clear all filters
+          </Button>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!isLoading && meta && meta.totalPage > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-12">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="rounded-xl px-4"
+          >
+            Previous
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: meta.totalPage }, (_, i) => i + 1).map((p) => (
+              <Button
+                key={p}
+                variant={page === p ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setPage(p)}
+                className="w-10 h-10 rounded-xl font-black"
+              >
+                {p}
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.min(meta.totalPage, p + 1))}
+            disabled={page === meta.totalPage}
+            className="rounded-xl px-4"
+          >
+            Next
           </Button>
         </div>
       )}
